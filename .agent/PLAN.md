@@ -1,57 +1,37 @@
 # PLAN
 
-Task: TASK-020
+Task: TASK-021
 
 ## Risk tier
 
-LOW — verification only, no new code paths.
+LOW — documentation only.
 
 ## Specialist concerns
 
-testing (per BACKLOG tag).
+none.
 
 ## Objective
 
-Prove the whole stack works as a real running process, not just under
-pytest's in-process `TestClient` — start the actual server, hit it over
-real HTTP with real Ollama inference and real Qdrant, exercise all four
-scenarios from PROJECT.md's success criteria.
+`README.md`: setup, run, and demo-flow instructions accurate to what was
+actually built and verified in TASK-020, not aspirational.
 
 ## Steps
 
-1. Start `uvicorn app.main:app` for real (background process), confirm
-   `/health`.
-2. `POST /ingest/text` with a real fact; confirm it lands.
-3. `POST /chat/stream`, grounded question -> real trace + real citation.
-4. `POST /chat/stream`, "hi, how are you?" -> real chat path, no
-   retrieval.
-5. `POST /chat/stream`, a genuinely unanswerable question -> this is the
-   one scenario not already covered by a scripted-fake-LLM test: real
-   Ollama judging its own groundedness, for real, with no scripted answer.
-6. `npm run dev` starts without crashing (frontend process check).
-
-## Honest scope note
-
-No browser automation tool is active in this session, so the actual pixel-
-level UI (badge colors, layout) isn't clicked through in a real browser.
-What TASK-020 verifies instead: the exact wire contract the frontend's
-already-reviewed code consumes, exercised live end-to-end with real
-inference (not mocked) — which is the part that couldn't be proven by
-unit tests alone. Frontend code review + build success (TASK-018/019)
-plus this live backend proof together cover the acceptance criteria; a
-literal click-through is left for the user's own first run.
+1. Architecture summary (the ADR-004 graph diagram, in text).
+2. Setup: Ollama models, Docker/Qdrant, Python venv, `.env`.
+3. Run: backend (`uvicorn`), frontend (`npm run dev`).
+4. Demo flow: upload a doc, ask a grounded question, ask small talk, ask
+   an unanswerable question — mirrors exactly what TASK-020 verified live.
+5. Note the disclosed scope decisions from PROGRESS.md (incremental vs
+   token-level streaming, PDF fidelity untested) so a reader isn't
+   surprised later.
 
 ## Acceptance criteria
 
-- [ ] Real server responds on `/health`
-- [ ] Real ingest -> real retrieval works
-- [ ] Real grounded RAG turn produces a cited answer
-- [ ] Real chat turn produces no retrieval call
-- [ ] Real unanswerable question is handled honestly (retry then fallback,
-      or a grounded-enough answer if the model surprises us — either is
-      fine, a hallucinated confident wrong answer is not)
-- [ ] `npm run dev` starts cleanly
+- [ ] A reader with a clean checkout can follow it to a working app
+- [ ] Every claim in it was actually verified in this run (no
+      aspirational/untested claims)
 
 ## Files expected to change
 
-None — this is a verification task.
+- `README.md` (new)

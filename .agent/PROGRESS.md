@@ -389,3 +389,22 @@ production data). Backend server left running in the background
 (uvicorn, port 8000) for the user's immediate use. All of PROJECT.md's
 success criteria are now proven true against the real, running stack.
 TASK-021 (README) now READY — everything remaining is documentation.
+
+## 2026-08-23 — TASK-021
+
+Implemented:
+- `README.md`: architecture diagram, setup (Ollama/Qdrant/backend/
+  frontend), run instructions, demo flow (mirrors exactly what TASK-020
+  verified live), test commands, disclosed scope decisions, and a note on
+  the loop-engineer-aqib workflow itself
+
+Tests: n/a (docs); sanity-checked every concrete claim against the actual
+repo (file paths exist, test count matches a fresh `pytest -q` run: 28
+passed)
+
+Metrics: iterations=1 retries=0 classifications=none
+
+Notes: only TASK-022 remains — needs-human screenshots for the portfolio
+writeup, genuinely optional/whenever-convenient since both servers are
+already runnable. Every P0/P1 task in the backlog is now DONE: the app is
+a complete, working, tested multi-agent RAG chatbot.

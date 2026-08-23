@@ -191,9 +191,9 @@ only a human can do/decide.
 ## EPIC-006 Demo
 
 ### TASK-021
-- [ ] README: setup, run, and demo-flow instructions.
+- [x] README: setup, run, and demo-flow instructions.
 - Priority: P2
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-020
 - Tags: none
 
@@ -201,8 +201,10 @@ only a human can do/decide.
 - [ ] Seed a real doc, capture screenshots of the Qdrant dashboard and the
       chat UI's agent trace for the portfolio writeup.
 - Priority: P2
-- Status: BLOCKED
+- Status: AWAITING_HUMAN
 - Dependencies: TASK-021
 - Tags: needs-human
 - Note: requires a human to look at the running UI/dashboard and choose
-  what to screenshot.
+  what to screenshot. Both are running right now (backend :8000, and the
+  user can start `npm run dev` for :5173) — this is genuinely ready for a
+  human to do, whenever convenient.
