@@ -17,10 +17,10 @@ only a human can do/decide.
 - Tags: none
 
 ### TASK-002
-- [ ] `backend/.env.example` + `app/config.py` (Ollama base URL, chat model,
+- [x] `backend/.env.example` + `app/config.py` (Ollama base URL, chat model,
       embed model, Qdrant URL, port). `.env` gitignored.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-001
 - Tags: none
 
@@ -36,7 +36,7 @@ only a human can do/decide.
 - [ ] FastAPI app skeleton (`app/main.py`) with `GET /health` returning
       `{"status": "ok"}`, plus a test for it.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-002
 - Tags: testing
 
@@ -57,7 +57,7 @@ only a human can do/decide.
 - [ ] `app/llm.py` — single factory for the Ollama chat model and
       embeddings client. No agent constructs these directly (AGENTS.md rule).
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-002
 - Tags: none
 

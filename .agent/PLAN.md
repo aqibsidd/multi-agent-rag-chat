@@ -1,45 +1,48 @@
 # PLAN
 
-Task: TASK-001
+Task: TASK-002
 
 ## Risk tier
 
-LOW — no schema, auth, secrets, or destructive operation. Local dev
-environment setup only.
+LOW — config scaffolding only. No real secrets involved (Ollama and Qdrant
+are both local, no API keys needed); `.env.example` documents shape, not
+values.
 
 ## Specialist concerns
 
-none — doesn't touch backend logic, DB, security, frontend, or deployment;
-it's environment setup.
+none — no business logic, no DB/security/frontend/deployment surface yet.
 
 ## Objective
 
-Create a Python virtual environment and `backend/requirements.txt` with all
-dependencies the project needs, verified installable.
+Create `backend/.env.example` and `backend/app/config.py` so every later
+task reads configuration from one place instead of hardcoding URLs/models.
 
 ## Steps
 
-1. Create `backend/` directory.
-2. Attempt `python3.14 -m venv backend/.venv` (matches PROJECT.md's already-
-   installed Python 3.14.6). If venv creation or the subsequent pip install
-   fails on a wheel build, classify as DEPENDENCY (not CODE_BUG) and fall
-   back to `python3.12` per BACKLOG.md's note, installing 3.12 via
-   `brew install python@3.12` if not already present.
-3. Write `backend/requirements.txt`:
-   fastapi, uvicorn[standard], langgraph, langchain, langchain-ollama,
-   langchain-qdrant, qdrant-client, python-dotenv, pytest, ruff.
-4. `pip install -r backend/requirements.txt` inside the venv.
-5. `ruff --version` and `pytest --version` both run inside the venv, to
-   confirm the dev-tool half of the install is real, not just the app libs.
+1. Create `backend/app/__init__.py` (package init).
+2. Write `backend/.env.example` with: `OLLAMA_BASE_URL`,
+   `OLLAMA_CHAT_MODEL`, `OLLAMA_EMBED_MODEL`, `QDRANT_URL`, `PORT`.
+3. Write `backend/app/config.py` using `pydantic-settings`-free approach
+   (plain `os.environ.get` + `python-dotenv`'s `load_dotenv()`, since
+   `pydantic-settings` isn't in requirements.txt and adding a new dep for
+   this is unjustified) — a `Settings` dataclass with defaults matching
+   `.env.example`.
+4. `backend/tests/test_config.py`: confirms `Settings()` loads the correct
+   defaults when no `.env` is present.
 
 ## Acceptance criteria
 
-- [ ] `backend/.venv` exists and activates without error
-- [ ] `backend/requirements.txt` lists all 10 packages above
-- [ ] `pip install -r backend/requirements.txt` completes with exit 0
-- [ ] `ruff --version` and `pytest --version` both succeed inside the venv
+- [ ] `backend/.env.example` documents all 5 variables
+- [ ] `backend/app/config.py` exposes a `Settings` object with sane
+      defaults (`OLLAMA_BASE_URL=http://localhost:11434`,
+      `OLLAMA_CHAT_MODEL=llama3.2`, `OLLAMA_EMBED_MODEL=nomic-embed-text`,
+      `QDRANT_URL=http://localhost:6333`, `PORT=8000`)
+- [ ] `pytest -q` passes the new config test
+- [ ] `ruff check .` clean
 
 ## Files expected to change
 
-- `backend/requirements.txt` (new)
-- `backend/.venv/` (new, gitignored)
+- `backend/.env.example` (new)
+- `backend/app/__init__.py` (new)
+- `backend/app/config.py` (new)
+- `backend/tests/test_config.py` (new)
