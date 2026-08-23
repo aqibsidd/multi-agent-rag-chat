@@ -207,3 +207,25 @@ f-string-without-placeholder lint failure, fixed with `ruff check --fix`)
 Metrics: iterations=2 retries=1 classifications=CODE_BUG x1
 
 Notes: TASK-014 (grader) now READY.
+
+## 2026-08-23 — TASK-014
+
+Implemented:
+- `backend/app/graph/grader.py`: `grader_node` (one LLM call does double
+  duty — returns `GROUNDED` or a rewritten query), `route_after_grading`
+  (pure function: end / retry / give_up), `fallback_node` (honest "don't
+  know", no LLM call)
+- `backend/tests/test_grader.py`: all three routing outcomes plus the
+  fallback message
+
+Tests: 19 passed total; `ruff check .` clean (2 issues caught: a TEST_BUG —
+`base_state()` fixture omitted the answer message being graded, causing an
+IndexError that was the test's fault, not grader.py's; and a CODE_BUG-class
+import-sort lint issue, fixed with `ruff check --fix`)
+
+Metrics: iterations=3 retries=1 classifications=TEST_BUG x1, CODE_BUG x1
+
+Notes: this is the self-correcting mechanism ADR-004 is named for. Retry
+is bounded to exactly one round (`retry_count <= 1` routes back to
+rag_agent; beyond that, give_up) — matches PROJECT.md's success criterion.
+TASK-015 (full graph wiring) now READY.

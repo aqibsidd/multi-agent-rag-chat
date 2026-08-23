@@ -119,11 +119,11 @@ only a human can do/decide.
 - Tags: none
 
 ### TASK-014
-- [ ] `grader` node + conditional edge: checks the answer is grounded in
+- [x] `grader` node + conditional edge: checks the answer is grounded in
       retrieved chunks; if not, rewrites the query and retries `rag_agent`
       exactly once, then answers "I don't know" if still ungrounded.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-013
 - Tags: testing
 
@@ -131,7 +131,7 @@ only a human can do/decide.
 - [ ] Wire the full graph (`app/graph/build.py`); unit tests with a fake
       LLM verifying both routing branches and the retry edge.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-011, TASK-012, TASK-014
 - Tags: testing
 
