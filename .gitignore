@@ -6,3 +6,4 @@ node_modules/
 frontend/dist/
 .agent/LOOP.local
 .DS_Store
+*.log

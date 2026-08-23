@@ -1,25 +1,31 @@
 ---
-current_task: TASK-001
-iteration: 5
+current_task: none
+iteration: 11
 failure_count: 0
 ---
 
 # STATE
 
-Status: COMMIT
+Status: AWAITING_HUMAN
 
 Last Action:
-REVIEW: all 8 checklist items pass. Requirements met, scope clean (git
-status shows only .agent/* and backend/), no secrets, no business logic
-needing tests yet, consistent with ADR-001, no specialist tags to check.
+SELECT: scanned BACKLOG.md — no task is READY. TASK-022 is AWAITING_HUMAN
+(needs-human: screenshots for the portfolio writeup). Every other task
+(21 of 22) is DONE.
 
 Last Result:
-APPROVED
+21/22 tasks DONE. Full backend built and tested (28 tests passing, ruff
+clean), frontend extracted/rewired/built, README written. All of
+PROJECT.md's success criteria verified live against the real running
+stack in TASK-020 (real Ollama inference, real Qdrant retrieval — not
+mocked).
 
 Next Action:
-COMMIT: mark TASK-001 DONE in BACKLOG.md, append PROGRESS.md entry, git
-commit, unblock TASK-002/003/006 (deps satisfied), then hand off to SELECT.
+TASK-022 needs a human: open the running app (backend already live on
+:8000; run `npm run dev` for the frontend on :5173), ingest a real doc,
+take screenshots of the Qdrant dashboard (localhost:6333/dashboard) and
+the chat UI's agent-trace badges for the portfolio writeup. Whenever
+convenient — nothing else is blocked on it.
 
 Files Touched This Task:
-- backend/requirements.txt (new)
-- backend/.venv/ (new, gitignored)
+none — task boundary, backlog exhausted of READY work
