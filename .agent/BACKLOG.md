@@ -96,10 +96,10 @@ only a human can do/decide.
 - Tags: none
 
 ### TASK-011
-- [ ] Supervisor node: classifies a message as chit-chat vs needs-docs,
+- [x] Supervisor node: classifies a message as chit-chat vs needs-docs,
       sets `route`.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-010
 - Tags: testing
 

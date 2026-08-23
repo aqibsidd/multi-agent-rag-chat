@@ -1,37 +1,43 @@
 # PLAN
 
-Task: TASK-010
+Task: TASK-011
 
 ## Risk tier
 
-LOW — a type definition, no runtime behavior.
+LOW — routing logic, no data mutation, no external side effects beyond an
+LLM call.
 
 ## Specialist concerns
 
-none.
+testing (per BACKLOG tag) — must verify both routing branches.
 
 ## Objective
 
-`app/graph/state.py`: the shared state every graph node reads/writes —
-messages, routing decision, retrieved docs, groundedness, retry count.
+`supervisor_node`: classifies the latest user message as `chat` or `rag`,
+sets `route` in state. Routing decision needs one fast LLM call
+(ADR-004: 3-call/turn budget).
 
 ## Steps
 
-1. `app/graph/__init__.py` (package init).
-2. `GraphState` TypedDict: `messages` (using LangGraph's `add_messages`
-   reducer so nodes can append rather than overwrite), `route` (str),
-   `retrieved_docs` (list), `grounded` (bool), `retry_count` (int).
-3. Test: confirms the reducer actually merges message lists (not a
-   tautological "TypedDict has these keys" test).
+1. `app/graph/supervisor.py`: `supervisor_node(state, llm=None)` — accepts
+   an optional LLM for testability (defaults to `get_chat_model()` from
+   TASK-006), classifies the last message, returns `{"route": "chat"|"rag"}`.
+2. Test with a fake LLM object (`.invoke` returning a stub response) so the
+   test is fast and deterministic — real Ollama inference is correct for
+   runtime but too slow/nondeterministic for a unit test, consistent with
+   TASK-015's existing plan to use a fake LLM for graph tests.
+3. Test both branches: a message that should route to `chat` and one that
+   should route to `rag`.
 
 ## Acceptance criteria
 
-- [ ] `GraphState` has all 5 fields
-- [ ] `add_messages` reducer verified to merge, not overwrite
+- [ ] `supervisor_node` returns `{"route": "chat"}` or `{"route": "rag"}`
+      based on the fake LLM's classification
+- [ ] Both branches covered by a test that would fail if the parsing logic
+      were wrong (not a tautology)
 - [ ] `pytest -q` and `ruff check .` clean
 
 ## Files expected to change
 
-- `backend/app/graph/__init__.py` (new)
-- `backend/app/graph/state.py` (new)
-- `backend/tests/test_graph_state.py` (new)
+- `backend/app/graph/supervisor.py` (new)
+- `backend/tests/test_supervisor.py` (new)

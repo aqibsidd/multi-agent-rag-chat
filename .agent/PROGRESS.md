@@ -94,3 +94,21 @@ Tests: 6 passed total; `ruff check .` clean
 Metrics: iterations=3 retries=0 classifications=none
 
 Notes: TASK-011 (supervisor) and TASK-012 (chat_agent) now READY.
+
+## 2026-08-23 — TASK-011
+
+Implemented:
+- `backend/app/graph/supervisor.py`: `supervisor_node`, LLM injectable for
+  testing, defaults to `get_chat_model()`
+- `backend/tests/test_supervisor.py`: both routing branches, fake LLM (no
+  real Ollama call — fast and deterministic)
+
+Tests: 8 passed total; `ruff check .` clean
+
+Metrics: iterations=3 retries=0 classifications=none
+
+Notes: confirmed Ollama's server IS actually running locally
+(`lsof -iTCP:11434` shows it listening) — unlike Docker/Qdrant, this part
+of the stack is live. Kept tests on a fake LLM anyway per TASK-015's
+existing plan: real inference is correct at runtime but too slow/
+nondeterministic for a unit test.
