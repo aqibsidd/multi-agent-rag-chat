@@ -80,3 +80,17 @@ Tests: 4 passed total; `ruff check .` clean
 Metrics: iterations=3 retries=0 classifications=none
 
 Notes: TASK-010 (LangGraph state schema) now READY.
+
+## 2026-08-23 — TASK-010
+
+Implemented:
+- `backend/app/graph/state.py`: `GraphState` TypedDict (messages w/
+  `add_messages` reducer, route, retrieved_docs, grounded, retry_count)
+- `backend/tests/test_graph_state.py`: verifies the reducer actually
+  merges message lists, not just that keys exist
+
+Tests: 6 passed total; `ruff check .` clean
+
+Metrics: iterations=3 retries=0 classifications=none
+
+Notes: TASK-011 (supervisor) and TASK-012 (chat_agent) now READY.

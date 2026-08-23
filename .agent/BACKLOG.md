@@ -88,10 +88,10 @@ only a human can do/decide.
 ## EPIC-003 Agent graph
 
 ### TASK-010
-- [ ] LangGraph state schema (`app/graph/state.py`): messages, route,
+- [x] LangGraph state schema (`app/graph/state.py`): messages, route,
       retrieved docs, grounded flag, retry count.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-006
 - Tags: none
 
@@ -99,14 +99,14 @@ only a human can do/decide.
 - [ ] Supervisor node: classifies a message as chit-chat vs needs-docs,
       sets `route`.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-010
 - Tags: testing
 
 ### TASK-012
 - [ ] `chat_agent` node: plain conversational reply, no retrieval.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-010
 - Tags: none
 

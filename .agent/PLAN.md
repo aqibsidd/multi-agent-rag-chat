@@ -1,10 +1,10 @@
 # PLAN
 
-Task: TASK-006
+Task: TASK-010
 
 ## Risk tier
 
-LOW — client construction only, no external calls made at import time.
+LOW — a type definition, no runtime behavior.
 
 ## Specialist concerns
 
@@ -12,28 +12,26 @@ none.
 
 ## Objective
 
-`app/llm.py`: the only place in the codebase that constructs an Ollama
-chat model or embeddings client (AGENTS.md rule) — everything else imports
-from here, so swapping providers later is a one-file change.
+`app/graph/state.py`: the shared state every graph node reads/writes —
+messages, routing decision, retrieved docs, groundedness, retry count.
 
 ## Steps
 
-1. `get_chat_model()` -> `ChatOllama` using `settings.ollama_base_url` /
-   `ollama_chat_model`.
-2. `get_embeddings()` -> `OllamaEmbeddings` using `settings.ollama_base_url`
-   / `ollama_embed_model`.
-3. Test: both factories return an instance with the expected `model`
-   attribute set from `Settings` defaults, without making a network call
-   (Ollama doesn't need to be running for client construction).
+1. `app/graph/__init__.py` (package init).
+2. `GraphState` TypedDict: `messages` (using LangGraph's `add_messages`
+   reducer so nodes can append rather than overwrite), `route` (str),
+   `retrieved_docs` (list), `grounded` (bool), `retry_count` (int).
+3. Test: confirms the reducer actually merges message lists (not a
+   tautological "TypedDict has these keys" test).
 
 ## Acceptance criteria
 
-- [ ] `get_chat_model()` and `get_embeddings()` both exist, read from
-      `app.config.settings`, no hardcoded model names
-- [ ] Test passes without Ollama running (construction only, no `.invoke`)
+- [ ] `GraphState` has all 5 fields
+- [ ] `add_messages` reducer verified to merge, not overwrite
 - [ ] `pytest -q` and `ruff check .` clean
 
 ## Files expected to change
 
-- `backend/app/llm.py` (new)
-- `backend/tests/test_llm.py` (new)
+- `backend/app/graph/__init__.py` (new)
+- `backend/app/graph/state.py` (new)
+- `backend/tests/test_graph_state.py` (new)
