@@ -128,10 +128,10 @@ only a human can do/decide.
 - Tags: testing
 
 ### TASK-015
-- [ ] Wire the full graph (`app/graph/build.py`); unit tests with a fake
+- [x] Wire the full graph (`app/graph/build.py`); unit tests with a fake
       LLM verifying both routing branches and the retry edge.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-011, TASK-012, TASK-014
 - Tags: testing
 
@@ -142,7 +142,7 @@ only a human can do/decide.
       trace events (`{"event":"agent","node":"rag_agent"}` etc.) so the
       frontend can show which agent handled the turn.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-015
 - Tags: backend
 

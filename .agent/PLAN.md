@@ -1,57 +1,55 @@
 # PLAN
 
-Task: TASK-014
+Task: TASK-015
 
 ## Risk tier
 
-LOW — no external side effects, but this is the trickiest logic in the
-project (a stateful retry loop), so extra care in testing both branches.
+MEDIUM — this is where all prior nodes get wired into the actual
+supervisor topology ADR-004 committed to. A wiring mistake (wrong edge,
+missing path_map entry) would be silent until a real conversation hits it.
 
 ## Specialist concerns
 
-testing (per BACKLOG tag) — must prove both the grounded path and the
-retry-then-give-up path actually work, not just that the function runs.
+testing — every edge in the ADR-004 diagram must be exercised, not just
+"the graph compiles."
 
 ## Objective
 
-`grader_node` + `route_after_grading` (conditional edge) + `fallback_node`:
-after `rag_agent` answers, judge whether the answer is grounded in
-`retrieved_docs`. If not, and no retry has been used yet, rewrite the query
-and route back to `rag_agent` once. If still ungrounded after that retry,
-route to a fallback that admits it doesn't know rather than hallucinating
-further.
-
-## Design note
-
-One LLM call does double duty: the grader prompt asks for either
-`GROUNDED` or a rewritten, more specific query — avoiding a separate
-rewrite call. `retry_count` increments only on an ungrounded verdict;
-`route_after_grading` allows exactly one retry (`retry_count <= 1` routes
-back to `rag_agent`; beyond that, `give_up`). This keeps the retry path
-bounded to exactly one extra round, matching PROJECT.md's success
-criterion ("one query-rewrite retry fires, then admits it doesn't know").
+`app/graph/build.py`: `build_graph(llm=None, vectorstore=None) ->
+CompiledGraph` wiring supervisor -> {chat_agent | rag_agent -> grader ->
+{end | retry rag_agent | fallback}}, matching the diagram from ADR-004 and
+the state-machine reference used for this whole project's own dev-loop
+(different graph, same idea: explicit nodes and conditional edges).
 
 ## Steps
 
-1. `app/graph/grader.py`: `grader_node(state, llm=None)`,
-   `route_after_grading(state) -> Literal["end","retry","give_up"]`,
-   `fallback_node(state)`.
-2. Tests with a fake LLM: (a) grounded verdict routes to `end` without
-   touching `retry_count`; (b) ungrounded verdict increments `retry_count`
-   and replaces the last message with the rewritten query; (c)
-   `route_after_grading` returns `retry` at `retry_count == 1` and
-   `give_up` at `retry_count == 2`; (d) `fallback_node` produces an
-   honest "don't know" message.
+1. `app/graph/build.py`: `StateGraph(GraphState)`, register all 5 nodes
+   (supervisor, chat_agent, rag_agent, grader, fallback).
+2. `add_conditional_edges("supervisor", lambda s: s["route"], {"chat":
+   "chat_agent", "rag": "rag_agent"})`.
+3. `add_edge("rag_agent", "grader")`.
+4. `add_conditional_edges("grader", route_after_grading, {"end": END,
+   "retry": "rag_agent", "give_up": "fallback"})`.
+5. `add_edge("chat_agent", END)`, `add_edge("fallback", END)`.
+6. `llm`/`vectorstore` injected into node closures for testability —
+   `build_graph` accepts them and partially applies each node function, so
+   tests can pass a fake LLM through the WHOLE graph, not just individual
+   nodes.
+7. Tests with a fake LLM covering: (a) chit-chat -> supervisor -> chat_agent
+   -> END, no retrieval; (b) grounded doc question -> supervisor ->
+   rag_agent -> grader -> END; (c) ungrounded then grounded on retry ->
+   rag_agent -> grader -> rag_agent -> grader -> END; (d) ungrounded twice
+   -> rag_agent -> grader -> rag_agent -> grader -> fallback -> END.
 
 ## Acceptance criteria
 
-- [ ] Grounded case: `route_after_grading` returns `end`
-- [ ] Ungrounded, first attempt: returns `retry`, `retry_count` becomes 1
-- [ ] Ungrounded, second attempt: returns `give_up`, `retry_count` becomes 2
-- [ ] `fallback_node` never claims an answer it doesn't have
+- [ ] Graph compiles
+- [ ] All 4 end-to-end scenarios above pass with a fake LLM (fast,
+      deterministic — no real Ollama generation needed for graph-shape
+      tests, though retrieval can stay real since it's already proven fast)
 - [ ] `pytest -q` and `ruff check .` clean
 
 ## Files expected to change
 
-- `backend/app/graph/grader.py` (new)
-- `backend/tests/test_grader.py` (new)
+- `backend/app/graph/build.py` (new)
+- `backend/tests/test_graph_build.py` (new)

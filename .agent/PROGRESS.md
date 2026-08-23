@@ -229,3 +229,26 @@ Notes: this is the self-correcting mechanism ADR-004 is named for. Retry
 is bounded to exactly one round (`retry_count <= 1` routes back to
 rag_agent; beyond that, give_up) — matches PROJECT.md's success criterion.
 TASK-015 (full graph wiring) now READY.
+
+## 2026-08-23 — TASK-015
+
+Implemented:
+- `backend/app/graph/build.py`: `build_graph(llm, vectorstore)` — wires
+  supervisor -> {chat_agent | rag_agent -> grader -> {end | retry
+  rag_agent | fallback}} exactly per ADR-004; `initial_state()` helper
+- `backend/tests/test_graph_build.py`: a `ScriptedFakeLLM` that dispatches
+  replies by matching each node's distinctive system-prompt substring, so
+  one fake can drive the whole graph. All 4 end-to-end paths from
+  PROJECT.md's success criteria: chit-chat (no retrieval), grounded
+  (no retry), ungrounded-then-grounded (exactly one retry), ungrounded
+  twice (honest fallback)
+
+Tests: 23 passed total, all 4 scenarios green on the first real run;
+`ruff check .` clean
+
+Metrics: iterations=1 retries=0 classifications=none
+
+Notes: EPIC-003 (agent graph) is now fully DONE. This is the core
+multi-agent mechanism working end-to-end. TASK-016 (SSE chat endpoint) now
+READY — this is the last piece before the app is actually runnable as a
+chatbot.
