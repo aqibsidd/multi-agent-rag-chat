@@ -1,46 +1,43 @@
 # PLAN
 
-Task: TASK-007
+Task: TASK-008
 
 ## Risk tier
 
-MEDIUM — creates a persistent collection in an external service (Qdrant).
-Not HIGH: no schema migration on existing data, easily dropped/recreated
-in a dev environment, no destructive operation.
+LOW — writes to the dev Qdrant collection, easily wiped in a dev
+environment; no destructive or irreversible operation.
 
 ## Specialist concerns
 
-database — collection creation must be idempotent (safe to call every
-startup) and match the real embedding dimension.
+none.
 
 ## Objective
 
-`app/vectorstore.py`: single place that owns the Qdrant collection and
-hands back a LangChain-compatible vector store, for `app/ingest.py`
-(TASK-008) and `rag_agent` (TASK-013) to share.
+`app/ingest.py`: chunk raw text, embed, upsert to Qdrant with source
+metadata — the shared pipeline both `/ingest/text` and `/ingest/file`
+(TASK-009) will call.
 
 ## Steps
 
-1. `get_client()` — singleton `QdrantClient(url=settings.qdrant_url)`.
-2. `ensure_collection()` — idempotent: `client.collection_exists(...)`
-   before `create_collection(...)`, vector size 768 (nomic-embed-text's
-   real dimension, confirmed against langchain_qdrant's actual
-   `QdrantVectorStore.__init__` signature before writing this — matches
-   `distance=Distance.COSINE`, its own default).
-3. `get_vectorstore()` — calls `ensure_collection()`, returns a
-   `QdrantVectorStore` wrapping the client + `get_embeddings()`.
-4. Test against the **real, live** Qdrant (it's actually running — TASK-005
-   just confirmed this) rather than mocking: create the collection twice
-   (idempotency), confirm it exists via the client directly.
+1. Add missing dependency `langchain-text-splitters` (ERR-001 — was
+   omitted from TASK-001's requirements.txt).
+2. `ingest_text(text: str, source: str) -> int`: `RecursiveCharacterTextSplitter`
+   (chunk_size=1000, chunk_overlap=150) -> `Document` list with
+   `{"source": source, "chunk": i}` metadata -> `get_vectorstore().add_documents(...)`
+   -> returns chunk count.
+3. Test against the real, live Qdrant (consistent with TASK-007): ingest a
+   short text, confirm the chunk count returned and that a similarity
+   search against the vectorstore actually retrieves it back.
 
 ## Acceptance criteria
 
-- [ ] `ensure_collection()` is idempotent — calling it twice doesn't error
-- [ ] Collection exists in Qdrant with vector size 768 after calling it
-- [ ] `get_vectorstore()` returns a `QdrantVectorStore` instance
+- [ ] `ingest_text()` chunks, embeds, and upserts with correct metadata
+- [ ] Returns the number of chunks added
+- [ ] A similarity search after ingest finds the ingested content
 - [ ] `pytest -q` and `ruff check .` clean
 
 ## Files expected to change
 
-- `backend/app/vectorstore.py` (new)
-- `backend/tests/test_vectorstore.py` (new)
+- `backend/requirements.txt` (add langchain-text-splitters)
+- `backend/app/ingest.py` (new)
+- `backend/tests/test_ingest.py` (new)

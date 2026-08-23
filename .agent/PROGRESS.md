@@ -173,3 +173,21 @@ Metrics: iterations=2 retries=1 classifications=CODE_BUG x1
 
 Notes: TASK-008 (ingest) and TASK-013 (rag_agent) both now READY — neither
 depends on the other, so either can go next.
+
+## 2026-08-23 — TASK-008
+
+Implemented:
+- `backend/app/ingest.py`: `ingest_text()` — chunk, embed, upsert with
+  source/chunk metadata
+- `backend/tests/test_ingest.py`: full round trip against the real, live
+  Qdrant + real Ollama embeddings (unique marker per run to avoid
+  collision with leftover data in the shared dev collection)
+
+Tests: 14 passed total; `ruff check .` clean
+
+Metrics: iterations=2 retries=1 classifications=DEPENDENCY x1 (see
+ERR-001: langchain-text-splitters was missing from TASK-001's
+requirements.txt, added and installed, no application code touched to
+work around it)
+
+Notes: TASK-009 (ingest endpoints) now READY.

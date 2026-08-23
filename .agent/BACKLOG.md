@@ -70,10 +70,10 @@ only a human can do/decide.
 - Tags: database
 
 ### TASK-008
-- [ ] `app/ingest.py` — chunk (recursive char splitter), embed, upsert to
+- [x] `app/ingest.py` — chunk (recursive char splitter), embed, upsert to
       Qdrant with source metadata.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-007
 - Tags: none
 
@@ -81,7 +81,7 @@ only a human can do/decide.
 - [ ] `POST /ingest/file` (multipart, txt/md/pdf) and `POST /ingest/text`
       endpoints + tests.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-008
 - Tags: backend, testing
 
