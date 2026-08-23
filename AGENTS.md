@@ -46,5 +46,10 @@ A task is complete only when ALL of:
 
 ## Learned rules (promoted from ERRORS.md)
 
-<!-- When a preventive rule in ERRORS.md fires twice, promote it here as a
-     permanent rule. -->
+- **Verify a new library surface is actually installed before writing code
+  against it.** Before importing from a new FastAPI feature or a new
+  LangChain sub-package, run a one-line import check in the venv first.
+  Promoted after two DEPENDENCY incidents in a row (ERR-001:
+  `langchain-text-splitters`, ERR-002: `python-multipart` for
+  `UploadFile`) — both were caught by a failing test rather than checked
+  up front.

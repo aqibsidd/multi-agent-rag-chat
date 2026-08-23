@@ -26,3 +26,28 @@ confirm it's actually installed before writing code against it, not after
 a test fails.
 
 Status: RESOLVED
+
+## ERR-002
+
+Task: TASK-009
+
+Classification: DEPENDENCY
+
+Symptom: `pytest` collection failed for every test module importing
+`app.main` — `RuntimeError: Form data requires "python-multipart" to be
+installed`, triggered by FastAPI's `UploadFile` parameter.
+
+Root cause: TASK-001's requirements.txt didn't anticipate `UploadFile`
+needing `python-multipart` as a separate package (FastAPI only checks for
+it lazily, at route-registration time).
+
+Fix: added `python-multipart` to requirements.txt, installed. No
+application code touched.
+
+Preventive rule: this is the second missing-dependency incident in a row
+(after ERR-001, langchain-text-splitters). Promoting a rule: **before
+importing anything from a new library surface (a new FastAPI feature, a
+new LangChain sub-package), run a one-line import check in the venv before
+writing the feature around it.**
+
+Status: PROMOTED — added to root AGENTS.md.

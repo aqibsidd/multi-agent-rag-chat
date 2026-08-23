@@ -1,5 +1,8 @@
+import io
+
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from pypdf import PdfReader
 
 from app.vectorstore import get_vectorstore
 
@@ -18,3 +21,14 @@ def ingest_text(text: str, source: str) -> int:
 
     get_vectorstore().add_documents(docs)
     return len(docs)
+
+
+def extract_pdf_text(content: bytes) -> str:
+    reader = PdfReader(io.BytesIO(content))
+    return "\n".join(page.extract_text() or "" for page in reader.pages)
+
+
+def extract_text_from_upload(filename: str, content: bytes) -> str:
+    if filename.lower().endswith(".pdf"):
+        return extract_pdf_text(content)
+    return content.decode("utf-8", errors="replace")

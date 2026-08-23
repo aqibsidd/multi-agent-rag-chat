@@ -252,3 +252,27 @@ Notes: EPIC-003 (agent graph) is now fully DONE. This is the core
 multi-agent mechanism working end-to-end. TASK-016 (SSE chat endpoint) now
 READY — this is the last piece before the app is actually runnable as a
 chatbot.
+
+## 2026-08-23 — TASK-009
+
+Implemented:
+- `backend/app/ingest.py`: `extract_pdf_text()` (pypdf),
+  `extract_text_from_upload()` (dispatches by extension)
+- `backend/app/main.py`: `POST /ingest/text`, `POST /ingest/file`
+- `backend/tests/test_ingest_endpoints.py`: real round-trip through both
+  endpoints (post -> retrievable via similarity_search), plus a
+  blank-PDF-doesn't-crash test
+
+Tests: 26 passed total; `ruff check .` clean
+
+Metrics: iterations=3 retries=2 classifications=DEPENDENCY x2
+
+Notes: two missing-dependency incidents in a row (ERR-001, ERR-002) hit
+the promotion threshold — added a permanent rule to root AGENTS.md: verify
+a new library surface is importable before writing code against it.
+Documented a real scope limit rather than silently covering it: genuine
+PDF text-extraction fidelity isn't unit-tested (would need a rendering
+library like reportlab just to manufacture a text-bearing PDF fixture,
+not worth the dependency) — covered instead by a blank-PDF smoke test plus
+manual testing with a real PDF at TASK-022. TASK-016 (SSE endpoint) is now
+the only thing left before the app is a runnable chatbot.

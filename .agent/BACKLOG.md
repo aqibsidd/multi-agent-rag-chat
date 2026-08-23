@@ -78,10 +78,10 @@ only a human can do/decide.
 - Tags: none
 
 ### TASK-009
-- [ ] `POST /ingest/file` (multipart, txt/md/pdf) and `POST /ingest/text`
+- [x] `POST /ingest/file` (multipart, txt/md/pdf) and `POST /ingest/text`
       endpoints + tests.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-008
 - Tags: backend, testing
 
