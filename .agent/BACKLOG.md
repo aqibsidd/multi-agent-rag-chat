@@ -25,10 +25,10 @@ only a human can do/decide.
 - Tags: none
 
 ### TASK-003
-- [ ] `docker-compose.yml` at repo root: Qdrant service, port 6333, named
+- [x] `docker-compose.yml` at repo root: Qdrant service, port 6333, named
       volume for persistence.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-001
 - Tags: none
 
