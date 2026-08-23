@@ -112,3 +112,25 @@ Notes: confirmed Ollama's server IS actually running locally
 of the stack is live. Kept tests on a fake LLM anyway per TASK-015's
 existing plan: real inference is correct at runtime but too slow/
 nondeterministic for a unit test.
+
+## 2026-08-23 — TASK-012
+
+Implemented:
+- `backend/app/graph/chat_agent.py`: `chat_agent_node`, replies via full
+  message history, no retrieval
+- `backend/tests/test_chat_agent.py`: reducer-merge behavior with a fake
+  LLM, plus a source-inspection test proving the module never references
+  `vectorstore`
+
+Tests: 10 passed total; `ruff check .` clean
+
+Metrics: iterations=3 retries=0 classifications=none
+
+Notes: caught my own weak test during IMPLEMENT — an initial
+`"app.vectorstore" not in sys.modules` check would give a false pass once
+another test file imports vectorstore later in the same pytest session.
+Replaced with `inspect.getsource()` on the module itself, which actually
+fails if chat_agent.py starts importing vectorstore. EPIC-001 (minus
+TASK-005) and the non-Qdrant half of EPIC-003 are now done; everything
+remaining (TASK-007/013/014/015/016/017 and all of EPIC-005/006) is
+blocked on TASK-005 (Docker) or its downstream chain.

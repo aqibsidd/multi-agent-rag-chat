@@ -104,9 +104,9 @@ only a human can do/decide.
 - Tags: testing
 
 ### TASK-012
-- [ ] `chat_agent` node: plain conversational reply, no retrieval.
+- [x] `chat_agent` node: plain conversational reply, no retrieval.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-010
 - Tags: none
 

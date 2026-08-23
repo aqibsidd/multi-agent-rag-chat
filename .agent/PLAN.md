@@ -1,43 +1,37 @@
 # PLAN
 
-Task: TASK-011
+Task: TASK-012
 
 ## Risk tier
 
-LOW — routing logic, no data mutation, no external side effects beyond an
-LLM call.
+LOW.
 
 ## Specialist concerns
 
-testing (per BACKLOG tag) — must verify both routing branches.
+none.
 
 ## Objective
 
-`supervisor_node`: classifies the latest user message as `chat` or `rag`,
-sets `route` in state. Routing decision needs one fast LLM call
-(ADR-004: 3-call/turn budget).
+`chat_agent_node`: plain conversational reply for messages the supervisor
+routed to `chat` — no retrieval, no Qdrant dependency. This is the branch
+that must keep working even while TASK-005/007/013 stay blocked on Docker.
 
 ## Steps
 
-1. `app/graph/supervisor.py`: `supervisor_node(state, llm=None)` — accepts
-   an optional LLM for testability (defaults to `get_chat_model()` from
-   TASK-006), classifies the last message, returns `{"route": "chat"|"rag"}`.
-2. Test with a fake LLM object (`.invoke` returning a stub response) so the
-   test is fast and deterministic — real Ollama inference is correct for
-   runtime but too slow/nondeterministic for a unit test, consistent with
-   TASK-015's existing plan to use a fake LLM for graph tests.
-3. Test both branches: a message that should route to `chat` and one that
-   should route to `rag`.
+1. `app/graph/chat_agent.py`: `chat_agent_node(state, llm=None)` — replies
+   using the full message history, appends an `AIMessage` to `messages`.
+2. Test with a fake LLM: asserts the returned message is appended (not
+   overwritten) via the state's `add_messages` reducer semantics, and that
+   no retrieval/vectorstore call happens (chat_agent never imports
+   `app.vectorstore`).
 
 ## Acceptance criteria
 
-- [ ] `supervisor_node` returns `{"route": "chat"}` or `{"route": "rag"}`
-      based on the fake LLM's classification
-- [ ] Both branches covered by a test that would fail if the parsing logic
-      were wrong (not a tautology)
+- [ ] `chat_agent_node` returns `{"messages": [AIMessage(...)]}`
+- [ ] Test verifies the reply content and that it doesn't touch retrieval
 - [ ] `pytest -q` and `ruff check .` clean
 
 ## Files expected to change
 
-- `backend/app/graph/supervisor.py` (new)
-- `backend/tests/test_supervisor.py` (new)
+- `backend/app/graph/chat_agent.py` (new)
+- `backend/tests/test_chat_agent.py` (new)
