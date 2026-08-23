@@ -309,3 +309,31 @@ already shipped and tested. TASK-017 (integration test) turned out to
 already be satisfied by TASK-016's own two tests (real ingest, real trace
 assertions for both paths) — marked DONE with a note rather than writing a
 near-duplicate test. TASK-018 (frontend) now READY.
+
+## 2026-08-23 — TASK-018
+
+Implemented:
+- Extracted `frontend/` from `~/Downloads/rag-chat-app.zip`
+- `vite.config.js`: proxy target `:8000` (new backend port), paths
+  `/ingest`, `/chat`, `/health` instead of an `/api` prefix the new
+  backend doesn't use
+- `App.jsx`: rewrote the SSE parser to read named `event:`/`data:` blocks
+  (the new backend's real contract) instead of a `type` field inside
+  `data:` (the old Node backend's contract) — these are genuinely
+  different wire formats, not just a URL change. Fixed `chunksAdded` ->
+  `chunks_added`, dropped the nonexistent `chunk` field from source
+  rendering, updated header/title text to match the actual stack
+  (Ollama + LangGraph + Qdrant, not HNSWLib)
+
+Tests: `npm run build` succeeds (145.62 kB / 47.20 kB gzip)
+
+Metrics: iterations=1 retries=0 classifications=none
+
+Notes: `npm audit` flags esbuild <=0.24.2 (moderate, GHSA-67mh-4wv8-2f99 —
+a malicious website can send requests to the vite dev server while it's
+running). Disclosed rather than silently ignored: not fixed, since the fix
+requires an unrequested breaking upgrade to vite 8, and the exposure is
+dev-server-only for a project explicitly scoped to local-only use
+(PROJECT.md: "Cloud deployment" is out of scope). TASK-019 (agent-trace
+badge + sources panel) now READY — this is genuinely the last functional
+piece; TASK-020 is verification of what TASK-018/019 build.

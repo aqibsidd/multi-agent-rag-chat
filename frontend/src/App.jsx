@@ -1,0 +1,175 @@
+import { useState, useRef, useEffect } from "react";
+
+const API_BASE = "";
+
+export default function App() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const bottomRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  async function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadStatus(`Ingesting ${file.name}...`);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`${API_BASE}/ingest/file`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setUploadStatus(`Added "${file.name}" (${data.chunks_added} chunks) to knowledge base.`);
+    } catch (err) {
+      setUploadStatus(`Failed to ingest file: ${err.message}`);
+    } finally {
+      fileInputRef.current.value = "";
+    }
+  }
+
+  async function sendMessage() {
+    const text = input.trim();
+    if (!text || isStreaming) return;
+
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    setInput("");
+    setIsStreaming(true);
+
+    // placeholder assistant message we will stream tokens into
+    setMessages((prev) => [...prev, { role: "assistant", content: "", sources: [] }]);
+
+    try {
+      const res = await fetch(`${API_BASE}/chat/stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const blocks = buffer.split("\n\n");
+        buffer = blocks.pop(); // keep incomplete block for next read
+
+        for (const block of blocks) {
+          const eventLine = block.split("\n").find((l) => l.startsWith("event: "));
+          const dataLine = block.split("\n").find((l) => l.startsWith("data: "));
+          if (!eventLine || !dataLine) continue;
+
+          const event = eventLine.slice("event: ".length);
+          const payload = JSON.parse(dataLine.slice("data: ".length));
+
+          if (event === "token") {
+            setMessages((prev) => {
+              const copy = [...prev];
+              copy[copy.length - 1] = {
+                ...copy[copy.length - 1],
+                content: copy[copy.length - 1].content + payload.text,
+              };
+              return copy;
+            });
+          } else if (event === "done") {
+            setMessages((prev) => {
+              const copy = [...prev];
+              copy[copy.length - 1] = {
+                ...copy[copy.length - 1],
+                sources: payload.sources,
+              };
+              return copy;
+            });
+          }
+          // "agent" trace events are handled by the badge feature (TASK-019)
+        }
+      }
+    } catch (err) {
+      setMessages((prev) => {
+        const copy = [...prev];
+        copy[copy.length - 1] = { role: "assistant", content: `Error: ${err.message}` };
+        return copy;
+      });
+    } finally {
+      setIsStreaming(false);
+    }
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  return (
+    <div className="app">
+      <header className="header">
+        <h1>Multi-Agent RAG Chat</h1>
+        <p className="subtitle">Ollama + LangGraph + Qdrant — fully local</p>
+      </header>
+
+      <div className="upload-bar">
+        <input
+          type="file"
+          accept=".txt,.md,.pdf"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+        />
+        {uploadStatus && <span className="upload-status">{uploadStatus}</span>}
+      </div>
+
+      <div className="chat-window">
+        {messages.length === 0 && (
+          <div className="empty-state">
+            Upload a document, then ask a question about it below.
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={`message ${m.role}`}>
+            <div className="bubble">
+              <div className="content">{m.content || (isStreaming && i === messages.length - 1 ? "…" : "")}</div>
+              {m.sources && m.sources.length > 0 && (
+                <details className="sources">
+                  <summary>{m.sources.length} source chunk(s)</summary>
+                  {m.sources.map((s, j) => (
+                    <div key={j} className="source-item">
+                      <strong>{s.source}</strong>: {s.preview}...
+                    </div>
+                  ))}
+                </details>
+              )}
+            </div>
+          </div>
+        ))}
+        <div ref={bottomRef} />
+      </div>
+
+      <div className="input-bar">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask something about your documents..."
+          rows={2}
+        />
+        <button onClick={sendMessage} disabled={isStreaming || !input.trim()}>
+          {isStreaming ? "Thinking..." : "Send"}
+        </button>
+      </div>
+    </div>
+  );
+}

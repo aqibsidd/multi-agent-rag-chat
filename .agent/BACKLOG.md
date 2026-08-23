@@ -164,11 +164,11 @@ only a human can do/decide.
 ## EPIC-005 Frontend
 
 ### TASK-018
-- [ ] Extract the frontend from `~/Downloads/rag-chat-app.zip` into
+- [x] Extract the frontend from `~/Downloads/rag-chat-app.zip` into
       `frontend/`, point its API base at the new backend, confirm it still
       builds.
 - Priority: P1
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-016
 - Tags: frontend
 
@@ -176,7 +176,7 @@ only a human can do/decide.
 - [ ] Add an agent-trace badge and sources panel to the chat UI, wired to
       the new SSE trace event shape from TASK-016.
 - Priority: P1
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-018
 - Tags: frontend
 
