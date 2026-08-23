@@ -33,10 +33,10 @@ only a human can do/decide.
 - Tags: none
 
 ### TASK-004
-- [ ] FastAPI app skeleton (`app/main.py`) with `GET /health` returning
+- [x] FastAPI app skeleton (`app/main.py`) with `GET /health` returning
       `{"status": "ok"}`, plus a test for it.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-002
 - Tags: testing
 

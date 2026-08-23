@@ -1,34 +1,33 @@
 # PLAN
 
-Task: TASK-003
+Task: TASK-004
 
 ## Risk tier
 
-LOW — local dev infra file, no production deployment involved.
+LOW — a health-check endpoint, no auth/data surface.
 
 ## Specialist concerns
 
-none.
+testing (per BACKLOG tag) — a test must exist and actually exercise the
+endpoint.
 
 ## Objective
 
-`docker-compose.yml` at repo root running Qdrant locally with persistent
-storage.
+`backend/app/main.py`: FastAPI app with `GET /health` returning
+`{"status": "ok"}`.
 
 ## Steps
 
-1. Write `docker-compose.yml`: Qdrant service (`qdrant/qdrant` image),
-   port 6333 (REST) and 6334 (gRPC) mapped, named volume for
-   `/qdrant/storage`.
-2. Validate the compose file parses (`docker compose config`) if the CLI
-   works even without the daemon running; otherwise just validate YAML
-   syntax, since actually starting it is TASK-005's job (AWAITING_HUMAN).
+1. `app/main.py`: `FastAPI()` instance, `/health` route.
+2. `tests/test_main.py`: `TestClient` hits `/health`, asserts 200 and body.
 
 ## Acceptance criteria
 
-- [ ] `docker-compose.yml` exists, valid YAML
-- [ ] Qdrant service maps port 6333, uses a named volume for persistence
+- [ ] `GET /health` returns `{"status": "ok"}` with status 200
+- [ ] Test exercises the real route via `TestClient`, not a stub
+- [ ] `pytest -q` and `ruff check .` both clean
 
 ## Files expected to change
 
-- `docker-compose.yml` (new, repo root)
+- `backend/app/main.py` (new)
+- `backend/tests/test_main.py` (new)

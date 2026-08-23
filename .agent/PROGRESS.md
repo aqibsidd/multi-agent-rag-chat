@@ -52,3 +52,17 @@ Metrics: iterations=2 retries=0 classifications=none
 
 Notes: Actually starting Qdrant is still TASK-005, blocked on the Docker
 daemon (AWAITING_HUMAN).
+
+## 2026-08-23 — TASK-004
+
+Implemented:
+- `backend/app/main.py`: FastAPI app, `GET /health`
+- `backend/tests/test_main.py`: TestClient-based test
+
+Tests: 2 passed (config + health); `ruff check .` clean
+
+Metrics: iterations=3 retries=0 classifications=none
+
+Notes: Starlette warns that `httpx` support in its TestClient is
+deprecated in favor of `httpx2` — not an error, no action needed now, but
+worth a note if it becomes a hard failure in a future dependency bump.
