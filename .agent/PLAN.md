@@ -1,11 +1,10 @@
 # PLAN
 
-Task: TASK-008
+Task: TASK-013
 
 ## Risk tier
 
-LOW — writes to the dev Qdrant collection, easily wiped in a dev
-environment; no destructive or irreversible operation.
+LOW.
 
 ## Specialist concerns
 
@@ -13,31 +12,34 @@ none.
 
 ## Objective
 
-`app/ingest.py`: chunk raw text, embed, upsert to Qdrant with source
-metadata — the shared pipeline both `/ingest/text` and `/ingest/file`
-(TASK-009) will call.
+`rag_agent_node`: retrieve top-4 chunks from Qdrant for the latest message,
+generate a grounded answer with `[n]`-style citations, store what was
+retrieved in state (`retrieved_docs`) so the grader (TASK-014) can check
+groundedness against it without re-retrieving.
 
 ## Steps
 
-1. Add missing dependency `langchain-text-splitters` (ERR-001 — was
-   omitted from TASK-001's requirements.txt).
-2. `ingest_text(text: str, source: str) -> int`: `RecursiveCharacterTextSplitter`
-   (chunk_size=1000, chunk_overlap=150) -> `Document` list with
-   `{"source": source, "chunk": i}` metadata -> `get_vectorstore().add_documents(...)`
-   -> returns chunk count.
-3. Test against the real, live Qdrant (consistent with TASK-007): ingest a
-   short text, confirm the chunk count returned and that a similarity
-   search against the vectorstore actually retrieves it back.
+1. `app/graph/rag_agent.py`: `rag_agent_node(state, llm=None,
+   vectorstore=None)` — both injectable for testing, default to
+   `get_chat_model()` / `get_vectorstore()`.
+2. Retrieve via real `similarity_search` (fast, already proven in
+   TASK-007/008) — only the LLM is faked in the test, since that's the
+   slow/nondeterministic part.
+3. Build a numbered context block, prompt the LLM to answer using only
+   that context and cite `[n]`.
+4. Return `{"messages": [AIMessage(...)], "retrieved_docs": docs}`.
+5. Test: ingest a real marker doc, run the node with a fake LLM, assert
+   the fake was called with a prompt containing the retrieved chunk, and
+   that `retrieved_docs` in the result actually contains it.
 
 ## Acceptance criteria
 
-- [ ] `ingest_text()` chunks, embeds, and upserts with correct metadata
-- [ ] Returns the number of chunks added
-- [ ] A similarity search after ingest finds the ingested content
+- [ ] Retrieves real chunks from Qdrant (not stubbed)
+- [ ] Prompt sent to the LLM includes the retrieved content
+- [ ] Returns both the AI message and `retrieved_docs`
 - [ ] `pytest -q` and `ruff check .` clean
 
 ## Files expected to change
 
-- `backend/requirements.txt` (add langchain-text-splitters)
-- `backend/app/ingest.py` (new)
-- `backend/tests/test_ingest.py` (new)
+- `backend/app/graph/rag_agent.py` (new)
+- `backend/tests/test_rag_agent.py` (new)

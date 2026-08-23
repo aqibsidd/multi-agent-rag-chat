@@ -191,3 +191,19 @@ requirements.txt, added and installed, no application code touched to
 work around it)
 
 Notes: TASK-009 (ingest endpoints) now READY.
+
+## 2026-08-23 — TASK-013
+
+Implemented:
+- `backend/app/graph/rag_agent.py`: `rag_agent_node` — real retrieval
+  (top-4, live Qdrant), fake-able LLM, numbered-context prompt with `[n]`
+  citation instructions, returns both the reply and `retrieved_docs`
+- `backend/tests/test_rag_agent.py`: ingests a real marker doc, confirms
+  the fake LLM was actually prompted with the retrieved content
+
+Tests: 15 passed total; `ruff check .` clean (one CODE_BUG-class
+f-string-without-placeholder lint failure, fixed with `ruff check --fix`)
+
+Metrics: iterations=2 retries=1 classifications=CODE_BUG x1
+
+Notes: TASK-014 (grader) now READY.

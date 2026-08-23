@@ -111,10 +111,10 @@ only a human can do/decide.
 - Tags: none
 
 ### TASK-013
-- [ ] `rag_agent` node: retrieve top-4 from Qdrant, generate a grounded
+- [x] `rag_agent` node: retrieve top-4 from Qdrant, generate a grounded
       answer with citations.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-007, TASK-010
 - Tags: none
 
@@ -123,7 +123,7 @@ only a human can do/decide.
       retrieved chunks; if not, rewrites the query and retries `rag_agent`
       exactly once, then answers "I don't know" if still ungrounded.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-013
 - Tags: testing
 
