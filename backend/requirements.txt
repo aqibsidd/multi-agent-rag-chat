@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+langgraph
+langchain
+langchain-ollama
+langchain-qdrant
+qdrant-client
+python-dotenv
+pytest
+ruff

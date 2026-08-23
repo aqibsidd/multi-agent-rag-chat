@@ -7,12 +7,12 @@ only a human can do/decide.
 ## EPIC-001 Foundation
 
 ### TASK-001
-- [ ] Python venv + `backend/requirements.txt` (fastapi, uvicorn, langgraph,
+- [x] Python venv + `backend/requirements.txt` (fastapi, uvicorn, langgraph,
       langchain, langchain-ollama, langchain-qdrant, qdrant-client,
       python-dotenv, pytest, ruff). Try Python 3.14 first; if wheels fail to
       build, fall back to 3.12 (classify as DEPENDENCY, not a code bug).
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: none
 - Tags: none
 
@@ -20,7 +20,7 @@ only a human can do/decide.
 - [ ] `backend/.env.example` + `app/config.py` (Ollama base URL, chat model,
       embed model, Qdrant URL, port). `.env` gitignored.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-001
 - Tags: none
 
@@ -28,7 +28,7 @@ only a human can do/decide.
 - [ ] `docker-compose.yml` at repo root: Qdrant service, port 6333, named
       volume for persistence.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-001
 - Tags: none
 
