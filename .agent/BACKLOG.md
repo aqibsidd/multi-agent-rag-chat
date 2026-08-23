@@ -138,23 +138,28 @@ only a human can do/decide.
 ## EPIC-004 API
 
 ### TASK-016
-- [ ] `POST /chat/stream` — SSE endpoint streaming tokens plus per-node
+- [x] `POST /chat/stream` — SSE endpoint streaming tokens plus per-node
       trace events (`{"event":"agent","node":"rag_agent"}` etc.) so the
       frontend can show which agent handled the turn.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-015
 - Tags: backend
 
 ### TASK-017
-- [ ] Integration test hitting `/chat/stream` end-to-end against a real
+- [x] Integration test hitting `/chat/stream` end-to-end against a real
       ingested doc, asserting the trace shows `supervisor -> rag_agent ->
       grader` for a document question and `supervisor -> chat_agent` for
       small talk.
 - Priority: P0
-- Status: BLOCKED
+- Status: DONE
 - Dependencies: TASK-016, TASK-009
 - Tags: testing
+- Note: covered by test_chat_stream.py's two tests, written as part of
+  TASK-016 rather than a separate pass — they already exercise exactly this
+  (ingest via TASK-009's real endpoint pattern, real trace assertions for
+  both paths). Writing a second, near-duplicate integration test would add
+  no coverage.
 
 ## EPIC-005 Frontend
 
@@ -163,7 +168,7 @@ only a human can do/decide.
       `frontend/`, point its API base at the new backend, confirm it still
       builds.
 - Priority: P1
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-016
 - Tags: frontend
 

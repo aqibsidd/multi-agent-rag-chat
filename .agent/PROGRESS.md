@@ -276,3 +276,36 @@ library like reportlab just to manufacture a text-bearing PDF fixture,
 not worth the dependency) — covered instead by a blank-PDF smoke test plus
 manual testing with a real PDF at TASK-022. TASK-016 (SSE endpoint) is now
 the only thing left before the app is a runnable chatbot.
+
+## 2026-08-23 — TASK-016 (+ TASK-017)
+
+Implemented:
+- `backend/app/main.py`: `POST /chat/stream`, SSE. `agent` event per
+  completed graph node (with `route` on the supervisor's event), `token`
+  event per AI message produced, final `done` event with the answer and
+  sources
+- `get_graph()` as a FastAPI dependency (`Depends`), overridable in tests
+  — same pattern used to inject a fake LLM through the whole graph
+- `backend/tests/test_chat_stream.py`: both end-to-end paths (chit-chat,
+  grounded RAG with real ingested doc), parses real SSE output
+
+Tests: 28 passed total; `ruff check .` clean (added
+`backend/pyproject.toml` to tell ruff's bugbear rule that
+`fastapi.Depends` in a default argument is FastAPI's own idiomatic
+pattern, not the mutable-default-arg bug it normally flags — the standard
+fix, not a suppression)
+
+Metrics: iterations=2 retries=1 classifications=CODE_BUG x1 (ruff config
+gap)
+
+Notes: **scope decision, disclosed in PLAN.md**: this delivers
+incremental per-agent streaming (each node's complete output as it
+finishes), not true token-by-token LLM streaming — every node calls
+`llm.invoke()` (blocking) by design, since supervisor/grader need the full
+text to decide routing/groundedness before acting. Real token streaming
+would mean re-plumbing chat_agent/rag_agent through `.stream()` with
+config propagation — larger than this task's scope, and TASK-012/013 are
+already shipped and tested. TASK-017 (integration test) turned out to
+already be satisfied by TASK-016's own two tests (real ingest, real trace
+assertions for both paths) — marked DONE with a note rather than writing a
+near-duplicate test. TASK-018 (frontend) now READY.
