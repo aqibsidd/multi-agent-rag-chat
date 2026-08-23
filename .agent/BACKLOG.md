@@ -181,10 +181,10 @@ only a human can do/decide.
 - Tags: frontend
 
 ### TASK-020
-- [ ] `npm run build` passes; manual smoke test of the full flow (upload,
+- [x] `npm run build` passes; manual smoke test of the full flow (upload,
       ask grounded question, ask small talk, ask an unanswerable question).
 - Priority: P1
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-019
 - Tags: testing
 
@@ -193,7 +193,7 @@ only a human can do/decide.
 ### TASK-021
 - [ ] README: setup, run, and demo-flow instructions.
 - Priority: P2
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-020
 - Tags: none
 

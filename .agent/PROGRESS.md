@@ -359,3 +359,33 @@ Metrics: iterations=1 retries=0 classifications=none
 
 Notes: TASK-020 (manual smoke test) now READY — the last task before the
 app is genuinely demo-ready.
+
+## 2026-08-23 — TASK-020
+
+Implemented (verification only, no code changes):
+- Started the real `uvicorn` server (background, not pytest's in-process
+  `TestClient`) and exercised the actual running process over real HTTP
+- Real ingest -> real grounded RAG turn: correctly cited "20 vacation
+  days" from the ingested policy, trace `supervisor -> rag_agent ->
+  grader`, no retry needed
+- Real chit-chat turn: trace `supervisor -> chat_agent`, empty sources,
+  natural reply — confirms zero retrieval calls on the chat path
+- Real unanswerable question ("CEO's favorite pizza topping"): rag_agent's
+  own honesty instruction declined to fabricate an answer on the first
+  pass; grader confirmed an honest "I don't know" as grounded, so no
+  retry fired. Notable finding: the retry path is correct (proven by
+  scripted-fake-LLM unit tests) but wasn't exercised by *this* real
+  question, because the first line of defense (rag_agent's own prompt)
+  already worked — a good sign of prompt quality, not a gap
+- `npm run dev` starts cleanly (verified, then stopped — not left running)
+
+Tests: 4/4 real end-to-end scenarios pass; frontend build/dev both clean
+
+Metrics: iterations=1 retries=0 classifications=none
+
+Notes: dev Qdrant collection now has accumulated test/demo documents from
+pytest runs and this smoke test (harmless — shared local dev DB, not
+production data). Backend server left running in the background
+(uvicorn, port 8000) for the user's immediate use. All of PROJECT.md's
+success criteria are now proven true against the real, running stack.
+TASK-021 (README) now READY — everything remaining is documentation.
