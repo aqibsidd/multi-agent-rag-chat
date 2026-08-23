@@ -1,33 +1,39 @@
 # PLAN
 
-Task: TASK-004
+Task: TASK-006
 
 ## Risk tier
 
-LOW — a health-check endpoint, no auth/data surface.
+LOW — client construction only, no external calls made at import time.
 
 ## Specialist concerns
 
-testing (per BACKLOG tag) — a test must exist and actually exercise the
-endpoint.
+none.
 
 ## Objective
 
-`backend/app/main.py`: FastAPI app with `GET /health` returning
-`{"status": "ok"}`.
+`app/llm.py`: the only place in the codebase that constructs an Ollama
+chat model or embeddings client (AGENTS.md rule) — everything else imports
+from here, so swapping providers later is a one-file change.
 
 ## Steps
 
-1. `app/main.py`: `FastAPI()` instance, `/health` route.
-2. `tests/test_main.py`: `TestClient` hits `/health`, asserts 200 and body.
+1. `get_chat_model()` -> `ChatOllama` using `settings.ollama_base_url` /
+   `ollama_chat_model`.
+2. `get_embeddings()` -> `OllamaEmbeddings` using `settings.ollama_base_url`
+   / `ollama_embed_model`.
+3. Test: both factories return an instance with the expected `model`
+   attribute set from `Settings` defaults, without making a network call
+   (Ollama doesn't need to be running for client construction).
 
 ## Acceptance criteria
 
-- [ ] `GET /health` returns `{"status": "ok"}` with status 200
-- [ ] Test exercises the real route via `TestClient`, not a stub
-- [ ] `pytest -q` and `ruff check .` both clean
+- [ ] `get_chat_model()` and `get_embeddings()` both exist, read from
+      `app.config.settings`, no hardcoded model names
+- [ ] Test passes without Ollama running (construction only, no `.invoke`)
+- [ ] `pytest -q` and `ruff check .` clean
 
 ## Files expected to change
 
-- `backend/app/main.py` (new)
-- `backend/tests/test_main.py` (new)
+- `backend/app/llm.py` (new)
+- `backend/tests/test_llm.py` (new)

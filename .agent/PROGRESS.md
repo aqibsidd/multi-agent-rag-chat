@@ -66,3 +66,17 @@ Metrics: iterations=3 retries=0 classifications=none
 Notes: Starlette warns that `httpx` support in its TestClient is
 deprecated in favor of `httpx2` — not an error, no action needed now, but
 worth a note if it becomes a hard failure in a future dependency bump.
+
+## 2026-08-23 — TASK-006
+
+Implemented:
+- `backend/app/llm.py`: `get_chat_model()`, `get_embeddings()`, both
+  reading from `app.config.settings`
+- `backend/tests/test_llm.py`: confirms client construction picks up
+  settings defaults, no Ollama connection required
+
+Tests: 4 passed total; `ruff check .` clean
+
+Metrics: iterations=3 retries=0 classifications=none
+
+Notes: TASK-010 (LangGraph state schema) now READY.

@@ -54,10 +54,10 @@ only a human can do/decide.
 ## EPIC-002 Ingest
 
 ### TASK-006
-- [ ] `app/llm.py` — single factory for the Ollama chat model and
+- [x] `app/llm.py` — single factory for the Ollama chat model and
       embeddings client. No agent constructs these directly (AGENTS.md rule).
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-002
 - Tags: none
 
@@ -91,7 +91,7 @@ only a human can do/decide.
 - [ ] LangGraph state schema (`app/graph/state.py`): messages, route,
       retrieved docs, grounded flag, retry count.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-006
 - Tags: none
 
