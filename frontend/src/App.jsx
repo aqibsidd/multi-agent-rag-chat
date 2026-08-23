@@ -46,7 +46,7 @@ export default function App() {
     setIsStreaming(true);
 
     // placeholder assistant message we will stream tokens into
-    setMessages((prev) => [...prev, { role: "assistant", content: "", sources: [] }]);
+    setMessages((prev) => [...prev, { role: "assistant", content: "", sources: [], trace: [] }]);
 
     try {
       const res = await fetch(`${API_BASE}/chat/stream`, {
@@ -75,7 +75,16 @@ export default function App() {
           const event = eventLine.slice("event: ".length);
           const payload = JSON.parse(dataLine.slice("data: ".length));
 
-          if (event === "token") {
+          if (event === "agent") {
+            setMessages((prev) => {
+              const copy = [...prev];
+              copy[copy.length - 1] = {
+                ...copy[copy.length - 1],
+                trace: [...copy[copy.length - 1].trace, { node: payload.node, route: payload.route }],
+              };
+              return copy;
+            });
+          } else if (event === "token") {
             setMessages((prev) => {
               const copy = [...prev];
               copy[copy.length - 1] = {
@@ -94,7 +103,6 @@ export default function App() {
               return copy;
             });
           }
-          // "agent" trace events are handled by the badge feature (TASK-019)
         }
       }
     } catch (err) {
@@ -141,6 +149,16 @@ export default function App() {
         {messages.map((m, i) => (
           <div key={i} className={`message ${m.role}`}>
             <div className="bubble">
+              {m.trace && m.trace.length > 0 && (
+                <div className="trace">
+                  {m.trace.map((t, j) => (
+                    <span key={j} className={`trace-badge trace-${t.node}`}>
+                      {t.node}
+                      {t.route ? `: ${t.route}` : ""}
+                    </span>
+                  ))}
+                </div>
+              )}
               <div className="content">{m.content || (isStreaming && i === messages.length - 1 ? "…" : "")}</div>
               {m.sources && m.sources.length > 0 && (
                 <details className="sources">

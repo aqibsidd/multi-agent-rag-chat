@@ -173,10 +173,10 @@ only a human can do/decide.
 - Tags: frontend
 
 ### TASK-019
-- [ ] Add an agent-trace badge and sources panel to the chat UI, wired to
+- [x] Add an agent-trace badge and sources panel to the chat UI, wired to
       the new SSE trace event shape from TASK-016.
 - Priority: P1
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-018
 - Tags: frontend
 
@@ -184,7 +184,7 @@ only a human can do/decide.
 - [ ] `npm run build` passes; manual smoke test of the full flow (upload,
       ask grounded question, ask small talk, ask an unanswerable question).
 - Priority: P1
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-019
 - Tags: testing
 

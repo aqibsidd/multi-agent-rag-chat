@@ -337,3 +337,25 @@ dev-server-only for a project explicitly scoped to local-only use
 (PROJECT.md: "Cloud deployment" is out of scope). TASK-019 (agent-trace
 badge + sources panel) now READY — this is genuinely the last functional
 piece; TASK-020 is verification of what TASK-018/019 build.
+
+## 2026-08-23 — TASK-019
+
+Implemented:
+- `App.jsx`: track a `trace` array per assistant message, appended on
+  each `agent` SSE event (node name + route when present); rendered as a
+  small badge row above the message content
+- `index.css`: per-node badge colors (supervisor/chat_agent/rag_agent/
+  grader/fallback each distinct) so chat vs RAG vs retry paths are visually
+  obvious at a glance
+
+Tests: `npm run build` succeeds; no frontend test runner exists in this
+project (the original rag-chat-app had none either) and standing one up
+for a single UI feature is disproportionate — real behavioral
+verification (correct badges for chit-chat/grounded/retry paths) is
+TASK-020's explicit job, a manual smoke test of the running app, not
+skipped here
+
+Metrics: iterations=1 retries=0 classifications=none
+
+Notes: TASK-020 (manual smoke test) now READY — the last task before the
+app is genuinely demo-ready.
