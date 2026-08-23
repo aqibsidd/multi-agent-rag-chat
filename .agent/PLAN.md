@@ -1,37 +1,46 @@
 # PLAN
 
-Task: TASK-012
+Task: TASK-007
 
 ## Risk tier
 
-LOW.
+MEDIUM — creates a persistent collection in an external service (Qdrant).
+Not HIGH: no schema migration on existing data, easily dropped/recreated
+in a dev environment, no destructive operation.
 
 ## Specialist concerns
 
-none.
+database — collection creation must be idempotent (safe to call every
+startup) and match the real embedding dimension.
 
 ## Objective
 
-`chat_agent_node`: plain conversational reply for messages the supervisor
-routed to `chat` — no retrieval, no Qdrant dependency. This is the branch
-that must keep working even while TASK-005/007/013 stay blocked on Docker.
+`app/vectorstore.py`: single place that owns the Qdrant collection and
+hands back a LangChain-compatible vector store, for `app/ingest.py`
+(TASK-008) and `rag_agent` (TASK-013) to share.
 
 ## Steps
 
-1. `app/graph/chat_agent.py`: `chat_agent_node(state, llm=None)` — replies
-   using the full message history, appends an `AIMessage` to `messages`.
-2. Test with a fake LLM: asserts the returned message is appended (not
-   overwritten) via the state's `add_messages` reducer semantics, and that
-   no retrieval/vectorstore call happens (chat_agent never imports
-   `app.vectorstore`).
+1. `get_client()` — singleton `QdrantClient(url=settings.qdrant_url)`.
+2. `ensure_collection()` — idempotent: `client.collection_exists(...)`
+   before `create_collection(...)`, vector size 768 (nomic-embed-text's
+   real dimension, confirmed against langchain_qdrant's actual
+   `QdrantVectorStore.__init__` signature before writing this — matches
+   `distance=Distance.COSINE`, its own default).
+3. `get_vectorstore()` — calls `ensure_collection()`, returns a
+   `QdrantVectorStore` wrapping the client + `get_embeddings()`.
+4. Test against the **real, live** Qdrant (it's actually running — TASK-005
+   just confirmed this) rather than mocking: create the collection twice
+   (idempotency), confirm it exists via the client directly.
 
 ## Acceptance criteria
 
-- [ ] `chat_agent_node` returns `{"messages": [AIMessage(...)]}`
-- [ ] Test verifies the reply content and that it doesn't touch retrieval
+- [ ] `ensure_collection()` is idempotent — calling it twice doesn't error
+- [ ] Collection exists in Qdrant with vector size 768 after calling it
+- [ ] `get_vectorstore()` returns a `QdrantVectorStore` instance
 - [ ] `pytest -q` and `ruff check .` clean
 
 ## Files expected to change
 
-- `backend/app/graph/chat_agent.py` (new)
-- `backend/tests/test_chat_agent.py` (new)
+- `backend/app/vectorstore.py` (new)
+- `backend/tests/test_vectorstore.py` (new)

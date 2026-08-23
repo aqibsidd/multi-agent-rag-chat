@@ -62,10 +62,10 @@ only a human can do/decide.
 - Tags: none
 
 ### TASK-007
-- [ ] `app/vectorstore.py` — Qdrant client, collection create-if-missing,
+- [x] `app/vectorstore.py` — Qdrant client, collection create-if-missing,
       matching the embedding dimension for `nomic-embed-text`.
 - Priority: P0
-- Status: READY
+- Status: DONE
 - Dependencies: TASK-005, TASK-006
 - Tags: database
 
@@ -73,7 +73,7 @@ only a human can do/decide.
 - [ ] `app/ingest.py` — chunk (recursive char splitter), embed, upsert to
       Qdrant with source metadata.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-007
 - Tags: none
 
@@ -114,7 +114,7 @@ only a human can do/decide.
 - [ ] `rag_agent` node: retrieve top-4 from Qdrant, generate a grounded
       answer with citations.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-007, TASK-010
 - Tags: none
 

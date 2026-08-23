@@ -154,3 +154,22 @@ to start Docker itself rather than waiting — did so directly (`open -a
 Docker`, poll loop, `docker compose up -d`) instead of asking again.
 TASK-007 now READY; this unblocks the rest of the ingest and RAG-agent
 chain.
+
+## 2026-08-23 — TASK-007
+
+Implemented:
+- `backend/app/vectorstore.py`: `get_client()` (singleton),
+  `ensure_collection()` (idempotent, 768-dim/cosine for nomic-embed-text),
+  `get_vectorstore()` (returns `QdrantVectorStore`)
+- `backend/tests/test_vectorstore.py`: run against the real, live Qdrant
+  (not mocked) — creates the collection twice to prove idempotency, checks
+  the actual stored vector size via `client.get_collection()`
+
+Tests: 12 passed total; `ruff check .` clean (one CODE_BUG-class import-
+sort lint failure caught by VERIFY, fixed with `ruff check --fix`,
+re-verified)
+
+Metrics: iterations=2 retries=1 classifications=CODE_BUG x1
+
+Notes: TASK-008 (ingest) and TASK-013 (rag_agent) both now READY — neither
+depends on the other, so either can go next.
