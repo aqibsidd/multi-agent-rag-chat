@@ -134,3 +134,23 @@ fails if chat_agent.py starts importing vectorstore. EPIC-001 (minus
 TASK-005) and the non-Qdrant half of EPIC-003 are now done; everything
 remaining (TASK-007/013/014/015/016/017 and all of EPIC-005/006) is
 blocked on TASK-005 (Docker) or its downstream chain.
+
+## 2026-08-23 — TASK-005
+
+Implemented:
+- Started Docker Desktop (`open -a Docker`, polled until `docker info`
+  succeeded — ~did not need the full 60s budget)
+- `docker compose up -d`: pulled `qdrant/qdrant:latest`, created network +
+  volume + container, started
+- Verified `GET localhost:6333/collections` -> 200,
+  `{"result":{"collections":[]},"status":"ok"}`
+
+Tests: n/a (infra verification, not app code)
+
+Metrics: iterations=1 retries=0 classifications=none
+
+Notes: this was the AWAITING_HUMAN blocker. User explicitly asked the loop
+to start Docker itself rather than waiting — did so directly (`open -a
+Docker`, poll loop, `docker compose up -d`) instead of asking again.
+TASK-007 now READY; this unblocks the rest of the ingest and RAG-agent
+chain.

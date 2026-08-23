@@ -41,15 +41,15 @@ only a human can do/decide.
 - Tags: testing
 
 ### TASK-005
-- [ ] Start Qdrant (`docker compose up -d`) and verify
+- [x] Start Qdrant (`docker compose up -d`) and verify
       `curl localhost:6333/collections` responds.
 - Priority: P0
-- Status: AWAITING_HUMAN
+- Status: DONE
 - Dependencies: TASK-003
 - Tags: needs-human
-- Note: Docker daemon is not running on this machine (socket absent at
-  `~/.docker/run/docker.sock`). Needs a human to run `open -a Docker` and
-  wait for it to finish starting before this can proceed.
+- Note: Docker daemon was started by the user's request ("do yourself check
+  docker") on 2026-08-23. `docker compose up -d` succeeded; GET
+  /collections returns 200 with an empty collection list.
 
 ## EPIC-002 Ingest
 
@@ -65,7 +65,7 @@ only a human can do/decide.
 - [ ] `app/vectorstore.py` — Qdrant client, collection create-if-missing,
       matching the embedding dimension for `nomic-embed-text`.
 - Priority: P0
-- Status: BLOCKED
+- Status: READY
 - Dependencies: TASK-005, TASK-006
 - Tags: database
 
