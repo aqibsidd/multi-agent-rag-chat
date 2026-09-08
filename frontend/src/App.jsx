@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 
 const API_BASE = "";
 
@@ -159,7 +160,19 @@ export default function App() {
                   ))}
                 </div>
               )}
-              <div className="content">{m.content || (isStreaming && i === messages.length - 1 ? "…" : "")}</div>
+              <div className="content">
+                {m.content ? (
+                  m.role === "assistant" ? (
+                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                  ) : (
+                    m.content
+                  )
+                ) : isStreaming && i === messages.length - 1 ? (
+                  "…"
+                ) : (
+                  ""
+                )}
+              </div>
               {m.sources && m.sources.length > 0 && (
                 <details className="sources">
                   <summary>{m.sources.length} source chunk(s)</summary>

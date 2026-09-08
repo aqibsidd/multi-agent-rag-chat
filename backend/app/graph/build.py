@@ -13,7 +13,7 @@ from app.graph.supervisor import supervisor_node
 def build_graph(llm=None, vectorstore=None):
     graph = StateGraph(GraphState)
 
-    graph.add_node("supervisor", partial(supervisor_node, llm=llm))
+    graph.add_node("supervisor", partial(supervisor_node, llm=llm, vectorstore=vectorstore))
     graph.add_node("chat_agent", partial(chat_agent_node, llm=llm))
     graph.add_node("rag_agent", partial(rag_agent_node, llm=llm, vectorstore=vectorstore))
     graph.add_node("grader", partial(grader_node, llm=llm))
