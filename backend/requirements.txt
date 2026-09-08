@@ -5,6 +5,7 @@ langgraph
 langchain
 langchain-text-splitters
 langchain-ollama
+langchain-openai
 langchain-qdrant
 qdrant-client
 pypdf

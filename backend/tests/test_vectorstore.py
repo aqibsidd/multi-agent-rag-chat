@@ -1,7 +1,7 @@
 from langchain_qdrant import QdrantVectorStore
 
+from app.config import settings
 from app.vectorstore import (
-    COLLECTION_NAME,
     EMBEDDING_DIM,
     ensure_collection,
     get_client,
@@ -14,9 +14,9 @@ def test_ensure_collection_is_idempotent():
     ensure_collection()  # second call must not raise
 
     client = get_client()
-    assert client.collection_exists(COLLECTION_NAME)
+    assert client.collection_exists(settings.qdrant_collection)
 
-    info = client.get_collection(COLLECTION_NAME)
+    info = client.get_collection(settings.qdrant_collection)
     assert info.config.params.vectors.size == EMBEDDING_DIM
 
 
