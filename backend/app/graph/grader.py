@@ -45,7 +45,15 @@ def grader_node(state: GraphState, llm=None) -> dict:
     return {
         "grounded": False,
         "retry_count": state["retry_count"] + 1,
-        "messages": [HumanMessage(content=verdict)],
+        # Tagged as internal so chat history / chat_agent can skip it —
+        # it's a rewritten retrieval query, not a user message.
+        "messages": [
+            HumanMessage(
+                content=verdict,
+                name="grader_retry",
+                additional_kwargs={"internal_retry": True},
+            )
+        ],
     }
 
 

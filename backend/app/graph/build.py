@@ -10,7 +10,7 @@ from app.graph.state import GraphState
 from app.graph.supervisor import supervisor_node
 
 
-def build_graph(llm=None, vectorstore=None):
+def build_graph(llm=None, vectorstore=None, checkpointer=None):
     graph = StateGraph(GraphState)
 
     graph.add_node("supervisor", partial(supervisor_node, llm=llm, vectorstore=vectorstore))
@@ -34,7 +34,7 @@ def build_graph(llm=None, vectorstore=None):
     graph.add_edge("chat_agent", END)
     graph.add_edge("fallback", END)
 
-    return graph.compile()
+    return graph.compile(checkpointer=checkpointer)
 
 
 def initial_state(user_text: str) -> GraphState:
