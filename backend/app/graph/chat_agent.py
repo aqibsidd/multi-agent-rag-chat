@@ -5,13 +5,26 @@ from app.llm import get_chat_model
 
 CHAT_SYSTEM_PROMPT = "You are a friendly, helpful assistant. Reply conversationally."
 
+# Keep the prompt bounded for small local models (llama3.2). 20 messages
+# ≈ 10 turns, enough for follow-ups like "how old is he?" without blowing
+# up the context window.
+MAX_HISTORY_MESSAGES = 20
+
+
+def _is_internal_retry(m) -> bool:
+    return bool(getattr(m, "additional_kwargs", {}).get("internal_retry")) or getattr(
+        m, "name", None
+    ) == "grader_retry"
+
 
 def chat_agent_node(state: GraphState, llm=None) -> dict:
     llm = llm or get_chat_model()
+    visible = [m for m in state["messages"] if not _is_internal_retry(m)]
+    visible = visible[-MAX_HISTORY_MESSAGES:]
     history = [{"role": "system", "content": CHAT_SYSTEM_PROMPT}]
     history += [
         {"role": "user" if m.type == "human" else "assistant", "content": m.content}
-        for m in state["messages"]
+        for m in visible
     ]
 
     response = llm.invoke(history)

@@ -8,8 +8,35 @@ export default function App() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
+  const [sessionId, setSessionId] = useState(() => {
+    let id = localStorage.getItem("rag_session_id");
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem("rag_session_id", id);
+    }
+    return id;
+  });
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    // Restore conversation log for this session (SQLite checkpointer server-side).
+    fetch(`${API_BASE}/chat/history/${sessionId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data && Array.isArray(data.messages)) {
+          setMessages(data.messages.map((m) => ({ ...m, sources: [], trace: [] })));
+        }
+      })
+      .catch(() => {});
+  }, [sessionId]);
+
+  function newChat() {
+    const id = crypto.randomUUID();
+    localStorage.setItem("rag_session_id", id);
+    setSessionId(id);
+    setMessages([]);
+  }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -53,7 +80,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/chat/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, session_id: sessionId }),
       });
 
       const reader = res.body.getReader();
@@ -138,6 +165,9 @@ export default function App() {
           ref={fileInputRef}
           onChange={handleFileUpload}
         />
+        <button onClick={newChat} disabled={isStreaming} title="Start a fresh session">
+          New chat
+        </button>
         {uploadStatus && <span className="upload-status">{uploadStatus}</span>}
       </div>
 
