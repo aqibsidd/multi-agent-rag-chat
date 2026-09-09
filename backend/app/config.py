@@ -21,6 +21,9 @@ class Settings:
     qdrant_url: str = os.environ.get("QDRANT_URL", "http://localhost:6333")
     qdrant_collection: str = os.environ.get("QDRANT_COLLECTION", "documents")
     checkpoint_db_path: str = os.environ.get("CHECKPOINT_DB_PATH", "checkpoints.db")
+    memory_auto_ingest: bool = (
+        os.environ.get("MEMORY_AUTO_INGEST", "true").strip().lower() == "true"
+    )
     port: int = int(os.environ.get("PORT", "8000"))
 
 

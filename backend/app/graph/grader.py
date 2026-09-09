@@ -4,11 +4,14 @@ from langchain_core.messages import AIMessage, HumanMessage
 
 from app.graph.state import GraphState
 from app.llm import get_chat_model
+from app.memory import history_text
 
 GRADER_PROMPT = (
     "You are checking whether an AI-generated answer is actually supported "
-    "by the given context. If every claim in the answer is backed by the "
-    "context, respond with exactly: GROUNDED\n"
+    "by the given context. The context has two parts: retrieved document "
+    "chunks and the conversation history (facts the user directly stated "
+    "count as supported). If every claim in the answer is backed by either "
+    "part, respond with exactly: GROUNDED\n"
     "If the answer contains information not present in the context, "
     "respond with a single rewritten search query — more specific than the "
     "original — that would help find the right information. Respond with "
@@ -24,7 +27,11 @@ FALLBACK_MESSAGE = (
 def grader_node(state: GraphState, llm=None) -> dict:
     llm = llm or get_chat_model(temperature=0)
     answer = state["messages"][-1].content
-    context = "\n\n".join(d.page_content for d in state.get("retrieved_docs", []))
+    docs_text = "\n\n".join(d.page_content for d in state.get("retrieved_docs", []))
+    context = (
+        f"Retrieved documents:\n{docs_text or '(none)'}"
+        f"\n\nConversation history:\n{history_text(state['messages'][:-1])}"
+    )
 
     response = llm.invoke(
         [

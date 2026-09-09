@@ -2,6 +2,7 @@ from langchain_core.messages import AIMessage
 
 from app.graph.state import GraphState
 from app.llm import get_chat_model
+from app.memory import is_internal_message
 
 CHAT_SYSTEM_PROMPT = "You are a friendly, helpful assistant. Reply conversationally."
 
@@ -11,15 +12,9 @@ CHAT_SYSTEM_PROMPT = "You are a friendly, helpful assistant. Reply conversationa
 MAX_HISTORY_MESSAGES = 20
 
 
-def _is_internal_retry(m) -> bool:
-    return bool(getattr(m, "additional_kwargs", {}).get("internal_retry")) or getattr(
-        m, "name", None
-    ) == "grader_retry"
-
-
 def chat_agent_node(state: GraphState, llm=None) -> dict:
     llm = llm or get_chat_model()
-    visible = [m for m in state["messages"] if not _is_internal_retry(m)]
+    visible = [m for m in state["messages"] if not is_internal_message(m)]
     visible = visible[-MAX_HISTORY_MESSAGES:]
     history = [{"role": "system", "content": CHAT_SYSTEM_PROMPT}]
     history += [
