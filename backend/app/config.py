@@ -10,7 +10,7 @@ load_dotenv()
 class Settings:
     ollama_base_url: str = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
     ollama_fallback_chat_model: str = os.environ.get("OLLAMA_FALLBACK_CHAT_MODEL", "llama3.2")
-    ollama_embed_model: str = os.environ.get("OLLAMA_EMBED_MODEL", "nomic-embed-text")
+    ollama_embed_model: str = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
     nvidia_api_key: str = os.environ.get("NVIDIA_API_KEY", "")
     nvidia_chat_model: str = os.environ.get(
         "NVIDIA_CHAT_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b"

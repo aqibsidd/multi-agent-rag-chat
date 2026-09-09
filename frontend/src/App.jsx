@@ -161,7 +161,7 @@ export default function App() {
       <div className="upload-bar">
         <input
           type="file"
-          accept=".txt,.md,.pdf"
+          accept=".txt,.md,.pdf,.png,.jpg,.jpeg"
           ref={fileInputRef}
           onChange={handleFileUpload}
         />

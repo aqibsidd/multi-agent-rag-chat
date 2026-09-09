@@ -7,6 +7,6 @@ def test_settings_defaults():
     assert s.ollama_fallback_chat_model == "llama3.2"
     assert s.nvidia_chat_model == "nvidia/nemotron-3.5-lightning-30b-a3b"
     assert s.nvidia_base_url == "https://integrate.api.nvidia.com/v1"
-    assert s.ollama_embed_model == "nomic-embed-text"
+    assert s.ollama_embed_model == "mxbai-embed-large"
     assert s.qdrant_url == "http://localhost:6333"
     assert s.port == 8000

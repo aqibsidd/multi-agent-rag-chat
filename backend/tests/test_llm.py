@@ -10,5 +10,5 @@ def test_get_chat_model_uses_settings_defaults():
 
 def test_get_embeddings_uses_settings_defaults():
     embeddings = get_embeddings()
-    assert embeddings.model == "nomic-embed-text"
+    assert embeddings.model == "mxbai-embed-large"
     assert embeddings.base_url == "http://localhost:11434"
