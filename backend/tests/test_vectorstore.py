@@ -2,9 +2,9 @@ from langchain_qdrant import QdrantVectorStore
 
 from app.config import settings
 from app.vectorstore import (
-    EMBEDDING_DIM,
     ensure_collection,
     get_client,
+    get_embedding_dim,
     get_vectorstore,
 )
 
@@ -17,7 +17,7 @@ def test_ensure_collection_is_idempotent():
     assert client.collection_exists(settings.qdrant_collection)
 
     info = client.get_collection(settings.qdrant_collection)
-    assert info.config.params.vectors.size == EMBEDDING_DIM
+    assert info.config.params.vectors.size == get_embedding_dim()
 
 
 def test_get_vectorstore_returns_qdrant_vectorstore():
