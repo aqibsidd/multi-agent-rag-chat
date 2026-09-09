@@ -1,4 +1,5 @@
 import json
+import logging
 
 from fastapi import Depends, FastAPI, UploadFile
 from fastapi.responses import StreamingResponse
@@ -7,6 +8,9 @@ from pydantic import BaseModel
 from app.config import settings
 from app.graph.build import build_graph, initial_state
 from app.ingest import extract_text_from_upload, ingest_text
+from app.memory import is_internal_message
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="multi-agent-rag-chat")
 
@@ -75,9 +79,7 @@ def _thread_config(session_id: str) -> dict:
 
 
 def _is_internal(m) -> bool:
-    return bool(getattr(m, "additional_kwargs", {}).get("internal_retry")) or getattr(
-        m, "name", None
-    ) == "grader_retry"
+    return is_internal_message(m)
 
 
 def _to_history_payload(messages: list) -> list[dict]:
@@ -149,5 +151,15 @@ async def chat_stream_endpoint(payload: ChatRequest, graph=Depends(get_graph)):
                         yield _sse("token", {"text": message.content})
 
         yield _sse("done", {"answer": final_answer, "sources": sources, "session_id": (payload.session_id or "default")})
+
+        # Persist facts the user stated this turn ("my father is X") into
+        # Qdrant so they survive restarts and new sessions. Best-effort:
+        # never break the chat response if extraction/ingest fails.
+        try:
+            from app.memory import persist_user_facts
+
+            persist_user_facts(payload.message, final_answer, payload.session_id)
+        except Exception as exc:  # noqa: BLE001 — chat already answered
+            logger.warning("User-fact persist skipped: %s", exc)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")

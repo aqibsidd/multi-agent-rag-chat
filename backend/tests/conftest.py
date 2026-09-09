@@ -4,6 +4,9 @@ import os
 # modules), so the whole suite talks to a disposable Qdrant collection instead
 # of the app's real "documents" collection.
 os.environ.setdefault("QDRANT_COLLECTION", "documents_pytest")
+# Chat endpoints auto-persist user-stated facts into Qdrant via a real LLM
+# call — disable for hermetic tests (test_memory.py covers it with fakes).
+os.environ.setdefault("MEMORY_AUTO_INGEST", "false")
 
 import pytest
 

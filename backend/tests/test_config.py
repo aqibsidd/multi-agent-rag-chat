@@ -9,4 +9,5 @@ def test_settings_defaults():
     assert s.nvidia_base_url == "https://integrate.api.nvidia.com/v1"
     assert s.ollama_embed_model == "mxbai-embed-large"
     assert s.qdrant_url == "http://localhost:6333"
+    assert s.memory_auto_ingest is False  # conftest forces false for hermetic tests
     assert s.port == 8000

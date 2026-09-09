@@ -10,3 +10,5 @@ frontend/dist/
 *.db
 *.sqlite
 checkpoints.db
+checkpoints.db-shm
+checkpoints.db-wal
