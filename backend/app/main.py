@@ -1,7 +1,7 @@
 import json
 import logging
 
-from fastapi import Depends, FastAPI, UploadFile
+from fastapi import Depends, FastAPI, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -9,6 +9,7 @@ from app.config import settings
 from app.graph.build import build_graph, initial_state
 from app.ingest import extract_text_from_upload, ingest_text
 from app.memory import is_internal_message
+from app.vectorstore import resolve_collection
 
 logger = logging.getLogger(__name__)
 
@@ -20,19 +21,29 @@ _checkpointer = None
 
 
 def get_checkpointer():
-    """Process-wide SQLite checkpointer (free, local file, persistent).
+    """Process-wide LangGraph checkpointer.
 
-    Lives in CHECKPOINT_DB_PATH (default ./checkpoints.db). Keeps one
-    connection open for the app lifetime — SqliteSaver is a context
-    manager, so we enter it once and reuse it.
-    Swap later for PostgresSaver/RedisSaver without touching agents.
+    Default: local SQLite file (CHECKPOINT_DB_PATH, free, single-box).
+    Multi-instance deploys: set CHECKPOINTER_URL to a Postgres connection
+    string (needs `langgraph-checkpoint-postgres`) and checkpoints are
+    shared across replicas. Same thread_id contract either way.
     """
     global _checkpointer_cm, _checkpointer
     if _checkpointer is None:
-        from langgraph.checkpoint.sqlite import SqliteSaver
+        if settings.checkpointer_url:
+            from langgraph.checkpoint.postgres import PostgresSaver
 
-        _checkpointer_cm = SqliteSaver.from_conn_string(settings.checkpoint_db_path)
-        _checkpointer = _checkpointer_cm.__enter__()
+            _checkpointer_cm = PostgresSaver.from_conn_string(
+                settings.checkpointer_url
+            )
+            _checkpointer = _checkpointer_cm.__enter__()
+        else:
+            from langgraph.checkpoint.sqlite import SqliteSaver
+
+            _checkpointer_cm = SqliteSaver.from_conn_string(
+                settings.checkpoint_db_path
+            )
+            _checkpointer = _checkpointer_cm.__enter__()
     return _checkpointer
 
 
@@ -51,30 +62,51 @@ def health() -> dict[str, str]:
 class IngestTextRequest(BaseModel):
     text: str
     source: str = "manual-input"
+    user_id: str = ""
+
+
+def _check_size(num_bytes: int) -> None:
+    limit = settings.max_upload_mb * 1024 * 1024
+    if num_bytes > limit:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Upload too large (>{settings.max_upload_mb}MB).",
+        )
 
 
 @app.post("/ingest/text")
 def ingest_text_endpoint(payload: IngestTextRequest) -> dict:
-    chunks_added = ingest_text(payload.text, source=payload.source)
+    _check_size(len(payload.text.encode("utf-8")))
+    collection = resolve_collection(payload.user_id)
+    chunks_added = ingest_text(payload.text, source=payload.source, collection=collection)
     return {"chunks_added": chunks_added}
 
 
 @app.post("/ingest/file")
-async def ingest_file_endpoint(file: UploadFile) -> dict:
+async def ingest_file_endpoint(
+    file: UploadFile, user_id: str = Form("")
+) -> dict:
     content = await file.read()
+    _check_size(len(content))
     filename = file.filename or "uploaded-file"
     text = extract_text_from_upload(filename, content)
-    chunks_added = ingest_text(text, source=filename)
+    chunks_added = ingest_text(
+        text, source=filename, collection=resolve_collection(user_id)
+    )
     return {"chunks_added": chunks_added, "filename": filename}
 
 
 class ChatRequest(BaseModel):
     message: str
     session_id: str = "default"
+    user_id: str = ""
 
 
-def _thread_config(session_id: str) -> dict:
-    thread_id = (session_id or "default").strip() or "default"
+def _thread_config(session_id: str, user_id: str = "") -> dict:
+    session = (session_id or "default").strip() or "default"
+    user = (user_id or "").strip()
+    # Namespace threads per tenant; legacy single-user sessions unchanged.
+    thread_id = f"{user}:{session}" if user else session
     return {"configurable": {"thread_id": thread_id}}
 
 
@@ -100,9 +132,11 @@ def _to_history_payload(messages: list) -> list[dict]:
 
 
 @app.get("/chat/history/{session_id}")
-def chat_history_endpoint(session_id: str, graph=Depends(get_graph)) -> dict:
+def chat_history_endpoint(
+    session_id: str, user_id: str = "", graph=Depends(get_graph)
+) -> dict:
     try:
-        state = graph.get_state(_thread_config(session_id))
+        state = graph.get_state(_thread_config(session_id, user_id))
     except ValueError:
         # Graph built without checkpointer (e.g. in unit tests).
         return {"session_id": session_id, "messages": []}
@@ -124,14 +158,23 @@ def _sse(event: str, data: dict) -> str:
 
 
 @app.post("/chat/stream")
-async def chat_stream_endpoint(payload: ChatRequest, graph=Depends(get_graph)):
-    config = _thread_config(payload.session_id)
+def chat_stream_endpoint(payload: ChatRequest, graph=Depends(get_graph)):
+    # NOTE: plain `def`, not `async def`. The graph runs blocking
+    # `.invoke()` calls (seconds each); Starlette executes sync endpoints in
+    # a threadpool, while `async def` would stall the event loop for all
+    # concurrent streams.
+    collection = resolve_collection(payload.user_id)
+    config = _thread_config(payload.session_id, payload.user_id)
 
     def event_generator():
         final_answer = ""
         sources: list[dict] = []
 
-        for chunk in graph.stream(initial_state(payload.message), config=config, stream_mode="updates"):
+        for chunk in graph.stream(
+            initial_state(payload.message, collection=collection),
+            config=config,
+            stream_mode="updates",
+        ):
             for node_name, update in chunk.items():
                 agent_payload = {"node": node_name}
                 if node_name == "supervisor":
@@ -158,7 +201,12 @@ async def chat_stream_endpoint(payload: ChatRequest, graph=Depends(get_graph)):
         try:
             from app.memory import persist_user_facts
 
-            persist_user_facts(payload.message, final_answer, payload.session_id)
+            persist_user_facts(
+                payload.message,
+                final_answer,
+                payload.session_id,
+                collection=collection,
+            )
         except Exception as exc:  # noqa: BLE001 — chat already answered
             logger.warning("User-fact persist skipped: %s", exc)
 

@@ -7,5 +7,22 @@ services:
     volumes:
       - qdrant_storage:/qdrant/storage
 
+  # Optional: shared checkpointer for multi-instance deploys.
+  # Set CHECKPOINTER_URL=postgresql://rag:rag@localhost:5432/rag
+  # (credentials via env/.env, never committed).
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+      POSTGRES_DB: rag
+    volumes:
+      - pg_storage:/var/lib/postgresql/data
+    profiles:
+      - with-postgres
+
 volumes:
   qdrant_storage:
+  pg_storage:

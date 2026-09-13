@@ -1,3 +1,5 @@
+import re
+
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams
@@ -31,33 +33,44 @@ def get_client() -> QdrantClient:
     return _client
 
 
-def ensure_collection() -> None:
+def resolve_collection(user_id: str = "") -> str:
+    """Per-user Qdrant collection. Empty user_id keeps the legacy shared
+    collection, so single-user local setups behave exactly as before.
+    Pass `X-User-Id` (or body `user_id`) to isolate tenants."""
+    base = settings.qdrant_collection
+    clean = re.sub(r"[^a-z0-9_-]", "", (user_id or "").strip().lower())[:32]
+    return f"{base}_u_{clean}" if clean else base
+
+
+def ensure_collection(collection: str | None = None) -> None:
+    name = collection or settings.qdrant_collection
     client = get_client()
     dim = get_embedding_dim()
-    if not client.collection_exists(settings.qdrant_collection):
+    if not client.collection_exists(name):
         client.create_collection(
-            collection_name=settings.qdrant_collection,
+            collection_name=name,
             vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
         )
         return
     # Embedding model changed (e.g. 768 -> 1024)? Old vectors are
     # incompatible, so recreate rather than fail on insert.
-    info = client.get_collection(settings.qdrant_collection)
+    info = client.get_collection(name)
     params = getattr(getattr(info, "config", None), "params", None)
     vectors = getattr(params, "vectors", None)
     existing_dim = getattr(vectors, "size", None)
     if existing_dim is not None and existing_dim != dim:
-        client.delete_collection(settings.qdrant_collection)
+        client.delete_collection(name)
         client.create_collection(
-            collection_name=settings.qdrant_collection,
+            collection_name=name,
             vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
         )
 
 
-def get_vectorstore() -> QdrantVectorStore:
-    ensure_collection()
+def get_vectorstore(collection: str | None = None) -> QdrantVectorStore:
+    name = collection or settings.qdrant_collection
+    ensure_collection(name)
     return QdrantVectorStore(
         client=get_client(),
-        collection_name=settings.qdrant_collection,
+        collection_name=name,
         embedding=get_embeddings(),
     )

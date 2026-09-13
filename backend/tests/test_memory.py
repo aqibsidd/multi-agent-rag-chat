@@ -61,6 +61,29 @@ def test_persist_user_facts_disabled_is_noop():
     assert fake.invoked_with is None
 
 
+def test_persist_user_facts_dedupes_restatements():
+    marker = uuid.uuid4().hex
+    fake = FakeLLM(f"Aqib's father name is Rashid {marker}.")
+
+    first = persist_user_facts(
+        f"my father name is Rashid {marker}",
+        "noted!",
+        session_id=f"test-dupe-{marker}",
+        llm=fake,
+        enabled=True,
+    )
+    assert first >= 1
+
+    second = persist_user_facts(
+        f"my father name is Rashid {marker}",  # same fact, new turn
+        "noted again!",
+        session_id=f"test-dupe-{marker}",
+        llm=FakeLLM(f"Aqib's father name is Rashid {marker}."),
+        enabled=True,
+    )
+    assert second == 0  # already stored → no duplicate chunk
+
+
 def test_rag_agent_prompt_includes_conversation_history():
     marker = uuid.uuid4().hex
     state = {

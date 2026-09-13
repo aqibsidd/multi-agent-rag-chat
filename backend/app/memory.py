@@ -7,6 +7,7 @@ what counts as history:
 """
 
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -62,12 +63,47 @@ def extract_facts(user_text: str, ai_text: str, llm=None) -> list[str]:
     return [line.strip("- ").strip() for line in content.splitlines() if line.strip()]
 
 
+def _normalize_fact(text: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", "", text.lower())).strip()
+
+
+def _dedupe_facts(facts: list[str], collection: str | None = None) -> list[str]:
+    """Drop facts already stored (exact restatements). Same-turn duplicates
+    collapse via normalization, as do verbatim restatements across turns.
+    Deliberately NOT score-based: same-shaped facts about different entities
+    ('father is Rashid X' vs 'father is Rashid Y') embed near-identically,
+    so a similarity cutoff would eat real facts. Paraphrases and
+    contradictions are kept — resolving them needs entity tracking,
+    noted as future work."""
+    from app.vectorstore import get_vectorstore
+
+    store = get_vectorstore(collection=collection)
+    fresh: list[str] = []
+    seen: set[str] = set()
+    for fact in facts:
+        norm = _normalize_fact(fact)
+        if not norm or norm in seen:
+            continue
+        seen.add(norm)
+        try:
+            hits = store.similarity_search_with_score(fact, k=3)
+        except Exception as exc:  # noqa: BLE001 — Qdrant down, keep chat working
+            logger.warning("Fact dedupe search skipped: %s", exc)
+            fresh.append(fact)
+            continue
+        if any(_normalize_fact(d.page_content) == norm for d, _ in hits):
+            continue
+        fresh.append(fact)
+    return fresh
+
+
 def persist_user_facts(
     user_text: str,
     ai_text: str,
     session_id: str,
     llm=None,
     enabled: bool | None = None,
+    collection: str | None = None,
 ) -> int:
     """Extract this turn's user-stated facts into Qdrant for cross-session recall.
 
@@ -82,9 +118,10 @@ def persist_user_facts(
     if not enabled or not (user_text or "").strip():
         return 0
     facts = extract_facts(user_text, ai_text or "", llm=llm)
+    facts = _dedupe_facts(facts, collection=collection)
     if not facts:
         return 0
     thread = (session_id or "default").strip() or "default"
-    added = ingest_text("\n".join(facts), source=f"user-memory:{thread}")
+    added = ingest_text("\n".join(facts), source=f"user-memory:{thread}", collection=collection)
     logger.info("Persisted %d user fact(s) from session %s", len(facts), thread)
     return added

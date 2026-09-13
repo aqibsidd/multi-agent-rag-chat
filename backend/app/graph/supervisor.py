@@ -29,7 +29,9 @@ def _knowledge_base_has_documents(vectorstore) -> bool:
 
 def supervisor_node(state: GraphState, llm=None, vectorstore=None) -> dict:
     llm = llm or get_chat_model(temperature=0)
-    vectorstore = vectorstore or get_vectorstore()
+    vectorstore = vectorstore or get_vectorstore(
+        collection=state.get("collection") or None
+    )
     last_message = state["messages"][-1].content
 
     prompt = SUPERVISOR_PROMPT_BASE
