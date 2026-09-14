@@ -1,7 +1,9 @@
 import json
 import logging
+import os
 
 from fastapi import Depends, FastAPI, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -13,6 +15,16 @@ from app.memory import is_internal_message
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="multi-agent-rag-chat")
+
+# Browsers block cross-origin fetch (frontend .onrender.com calling backend
+# .onrender.com) without this. Restrict via FRONTEND_URL in production.
+_frontend_url = os.environ.get("FRONTEND_URL", "").strip()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[_frontend_url] if _frontend_url else ["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 _graph = None
 _checkpointer_cm = None
