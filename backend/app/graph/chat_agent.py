@@ -6,7 +6,7 @@ from app.memory import is_internal_message
 
 CHAT_SYSTEM_PROMPT = "You are a friendly, helpful assistant. Reply conversationally."
 
-# Keep the prompt bounded for small local models (llama3.2). 20 messages
+# Keep the prompt bounded for small chat models. 20 messages
 # ≈ 10 turns, enough for follow-ups like "how old is he?" without blowing
 # up the context window.
 MAX_HISTORY_MESSAGES = 20

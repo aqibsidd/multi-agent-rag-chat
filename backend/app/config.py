@@ -9,7 +9,6 @@ load_dotenv()
 @dataclass(frozen=True)
 class Settings:
     ollama_base_url: str = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-    ollama_fallback_chat_model: str = os.environ.get("OLLAMA_FALLBACK_CHAT_MODEL", "llama3.2")
     ollama_embed_model: str = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
     nvidia_api_key: str = os.environ.get("NVIDIA_API_KEY", "")
     nvidia_chat_model: str = os.environ.get(
@@ -17,6 +16,12 @@ class Settings:
     )
     nvidia_base_url: str = os.environ.get(
         "NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1"
+    )
+    google_api_key: str = os.environ.get("GOOGLE_API_KEY", "")
+    google_chat_model: str = os.environ.get("GOOGLE_CHAT_MODEL", "gemini-2.5-flash")
+    groq_api_key: str = os.environ.get("GROQ_API_KEY", "")
+    groq_chat_model: str = os.environ.get(
+        "GROQ_CHAT_MODEL", "llama-3.3-70b-versatile"
     )
     qdrant_url: str = os.environ.get("QDRANT_URL", "http://localhost:6333")
     qdrant_collection: str = os.environ.get("QDRANT_COLLECTION", "documents")
