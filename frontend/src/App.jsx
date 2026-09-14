@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 
-const API_BASE = "";
+// Render/cloud: set VITE_API_URL to the backend .onrender.com URL at build
+// time. Empty = same-origin (local dev via vite proxy).
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
 export default function App() {
   const [messages, setMessages] = useState([]);

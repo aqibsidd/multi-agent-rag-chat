@@ -17,6 +17,8 @@ EMBEDDING_DIMS = {
 
 
 def get_embedding_dim() -> int:
+    if settings.embed_provider == "google":
+        return 768  # text-embedding-004
     return EMBEDDING_DIMS.get(settings.ollama_embed_model, 1024)
 
 
@@ -29,7 +31,10 @@ _client: QdrantClient | None = None
 def get_client() -> QdrantClient:
     global _client
     if _client is None:
-        _client = QdrantClient(url=settings.qdrant_url)
+        _client = QdrantClient(
+            url=settings.qdrant_url,
+            api_key=settings.qdrant_api_key or None,  # Qdrant Cloud needs it
+        )
     return _client
 
 

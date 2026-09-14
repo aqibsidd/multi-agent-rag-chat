@@ -7,6 +7,8 @@ def _settings_with_keys(**overrides):
     base = {
         "ollama_base_url": "http://localhost:11434",
         "ollama_embed_model": "mxbai-embed-large",
+        "embed_provider": "ollama",
+        "google_embed_model": "models/text-embedding-004",
         "nvidia_api_key": "n-test",
         "nvidia_chat_model": "nvidia/nemotron-3.5-lightning-30b-a3b",
         "nvidia_base_url": "https://integrate.api.nvidia.com/v1",
@@ -15,6 +17,7 @@ def _settings_with_keys(**overrides):
         "groq_api_key": "q-test",
         "groq_chat_model": "llama-3.3-70b-versatile",
         "qdrant_url": "http://localhost:6333",
+        "qdrant_api_key": "",
         "qdrant_collection": "documents_pytest",
         "checkpoint_db_path": "checkpoints.db",
         "memory_auto_ingest": False,
@@ -57,3 +60,11 @@ def test_get_embeddings_uses_settings_defaults():
     embeddings = get_embeddings()
     assert embeddings.model == "mxbai-embed-large"
     assert embeddings.base_url == "http://localhost:11434"
+
+
+def test_get_embeddings_google_provider_constructs(monkeypatch):
+    monkeypatch.setattr(
+        llm_module, "settings", _settings_with_keys(embed_provider="google")
+    )
+    embeddings = get_embeddings()
+    assert embeddings.model == "models/text-embedding-004"

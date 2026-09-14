@@ -36,7 +36,16 @@ def get_chat_model(temperature: float = 0.3):
     return primary.with_fallbacks(fallbacks)
 
 
-def get_embeddings() -> OllamaEmbeddings:
+def get_embeddings():
+    """Ollama locally, Google on Render/cloud. Same key as the chat
+    fallback — text-embedding-004 is 768-dim, free tier."""
+    if settings.embed_provider == "google":
+        from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+        return GoogleGenerativeAIEmbeddings(
+            model=settings.google_embed_model,
+            google_api_key=settings.google_api_key or "not-set",
+        )
     return OllamaEmbeddings(
         model=settings.ollama_embed_model,
         base_url=settings.ollama_base_url,
