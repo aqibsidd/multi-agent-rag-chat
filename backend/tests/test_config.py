@@ -10,7 +10,7 @@ def test_settings_defaults():
     assert s.groq_chat_model == "llama-3.3-70b-versatile"
     assert s.ollama_embed_model == "mxbai-embed-large"
     assert s.embed_provider == "ollama"
-    assert s.google_embed_model == "models/text-embedding-004"
+    assert s.google_embed_model == "models/gemini-embedding-001"
     assert s.qdrant_url == "http://localhost:6333"
     assert s.qdrant_api_key == ""
     assert s.memory_auto_ingest is False  # conftest forces false for hermetic tests

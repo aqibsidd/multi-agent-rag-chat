@@ -8,7 +8,7 @@ def _settings_with_keys(**overrides):
         "ollama_base_url": "http://localhost:11434",
         "ollama_embed_model": "mxbai-embed-large",
         "embed_provider": "ollama",
-        "google_embed_model": "models/text-embedding-004",
+        "google_embed_model": "models/gemini-embedding-001",
         "nvidia_api_key": "n-test",
         "nvidia_chat_model": "nvidia/nemotron-3.5-lightning-30b-a3b",
         "nvidia_base_url": "https://integrate.api.nvidia.com/v1",
@@ -67,4 +67,4 @@ def test_get_embeddings_google_provider_constructs(monkeypatch):
         llm_module, "settings", _settings_with_keys(embed_provider="google")
     )
     embeddings = get_embeddings()
-    assert embeddings.model == "models/text-embedding-004"
+    assert embeddings.model == "models/gemini-embedding-001"
