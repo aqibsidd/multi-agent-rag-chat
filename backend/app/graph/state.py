@@ -9,3 +9,6 @@ class GraphState(TypedDict):
     retrieved_docs: list
     grounded: bool
     retry_count: int
+    # Resolved per-user Qdrant collection ("documents" when single-user).
+    # Persisted in checkpoints so follow-up turns reuse the same namespace.
+    collection: str

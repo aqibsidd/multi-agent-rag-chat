@@ -29,6 +29,9 @@ class Settings:
     memory_auto_ingest: bool = (
         os.environ.get("MEMORY_AUTO_INGEST", "true").strip().lower() == "true"
     )
+    relevance_min_score: float = float(os.environ.get("RELEVANCE_MIN_SCORE", "0.5"))
+    max_upload_mb: int = int(os.environ.get("MAX_UPLOAD_MB", "10"))
+    checkpointer_url: str = os.environ.get("CHECKPOINTER_URL", "")
     port: int = int(os.environ.get("PORT", "8000"))
 
 

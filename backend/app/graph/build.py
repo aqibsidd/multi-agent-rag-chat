@@ -37,11 +37,12 @@ def build_graph(llm=None, vectorstore=None, checkpointer=None):
     return graph.compile(checkpointer=checkpointer)
 
 
-def initial_state(user_text: str) -> GraphState:
+def initial_state(user_text: str, collection: str = "") -> GraphState:
     return {
         "messages": [HumanMessage(content=user_text)],
         "route": "",
         "retrieved_docs": [],
         "grounded": False,
         "retry_count": 0,
+        "collection": collection,
     }

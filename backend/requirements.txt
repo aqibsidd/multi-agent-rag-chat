@@ -3,6 +3,7 @@ python-multipart
 uvicorn[standard]
 langgraph
 langgraph-checkpoint-sqlite
+langgraph-checkpoint-postgres  # only used when CHECKPOINTER_URL is set
 langchain
 langchain-text-splitters
 langchain-ollama

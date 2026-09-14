@@ -16,7 +16,7 @@ _splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
 OCR_MIN_CHARS_PER_PAGE = 50
 
 
-def ingest_text(text: str, source: str) -> int:
+def ingest_text(text: str, source: str, collection: str | None = None) -> int:
     chunks = _splitter.split_text(text)
     docs = [
         Document(page_content=chunk, metadata={"source": source, "chunk": i})
@@ -26,7 +26,7 @@ def ingest_text(text: str, source: str) -> int:
     if not docs:
         return 0
 
-    get_vectorstore().add_documents(docs)
+    get_vectorstore(collection=collection).add_documents(docs)
     return len(docs)
 
 

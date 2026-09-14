@@ -51,3 +51,33 @@ def test_extract_pdf_text_does_not_crash_on_a_blank_pdf():
 
     text = extract_pdf_text(buffer.getvalue())
     assert isinstance(text, str)
+
+
+def test_ingest_text_rejects_oversize_payload():
+    big = "x" * (11 * 1024 * 1024)  # over the 10MB default
+    response = client.post("/ingest/text", json={"text": big, "source": "big"})
+    assert response.status_code == 413
+
+
+def test_user_namespaces_keep_documents_isolated():
+    marker = uuid.uuid4().hex
+    client.post(
+        "/ingest/text",
+        json={
+            "text": f"Secret {marker}: user A loves mangoes.",
+            "source": f"a-{marker}",
+            "user_id": "user-a",
+        },
+    )
+
+    from app.vectorstore import get_vectorstore, resolve_collection
+
+    hits_b = get_vectorstore(collection=resolve_collection("user-b")).similarity_search(
+        f"secret {marker} mangoes", k=4
+    )
+    assert all(marker not in d.page_content for d in hits_b)
+
+    hits_a = get_vectorstore(collection=resolve_collection("user-a")).similarity_search(
+        f"secret {marker} mangoes", k=4
+    )
+    assert any(marker in d.page_content for d in hits_a)
