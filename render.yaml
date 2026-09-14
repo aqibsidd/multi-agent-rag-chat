@@ -1,0 +1,44 @@
+# Render Blueprint: backend (Python) + frontend (static).
+# Deploy: dashboard.render.com → New → Blueprint → point at this repo.
+# Then set the secret env vars below in the dashboard (never commit them).
+# Needs: Qdrant Cloud free cluster (URL + API key), GOOGLE_API_KEY,
+# NVIDIA_API_KEY, optional GROQ_API_KEY.
+# NOTE: first deploy ingests nothing — re-upload docs (768-dim Google
+# embeddings; ensure_collection recreates the collection on dim change).
+
+services:
+  - type: web
+    name: rag-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: EMBED_PROVIDER
+        value: google
+      - key: QDRANT_URL
+        sync: false # paste Qdrant Cloud cluster URL
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: MEMORY_AUTO_INGEST
+        value: true
+
+  - type: web
+    name: rag-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false # paste backend https://rag-backend-xxxx.onrender.com (no trailing slash)
