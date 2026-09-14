@@ -14,7 +14,7 @@ class Settings:
     # same GOOGLE_API_KEY as the chat fallback, no extra key).
     embed_provider: str = os.environ.get("EMBED_PROVIDER", "ollama").strip().lower()
     google_embed_model: str = os.environ.get(
-        "GOOGLE_EMBED_MODEL", "models/text-embedding-004"
+        "GOOGLE_EMBED_MODEL", "models/gemini-embedding-001"
     )
     nvidia_api_key: str = os.environ.get("NVIDIA_API_KEY", "")
     nvidia_chat_model: str = os.environ.get(

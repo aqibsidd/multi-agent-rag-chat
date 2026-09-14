@@ -38,7 +38,7 @@ def get_chat_model(temperature: float = 0.3):
 
 def get_embeddings():
     """Ollama locally, Google on Render/cloud. Same key as the chat
-    fallback — text-embedding-004 is 768-dim, free tier."""
+    fallback — gemini-embedding-001 is 3072-dim, free tier."""
     if settings.embed_provider == "google":
         from langchain_google_genai import GoogleGenerativeAIEmbeddings
 

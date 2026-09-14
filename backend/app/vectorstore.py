@@ -18,7 +18,7 @@ EMBEDDING_DIMS = {
 
 def get_embedding_dim() -> int:
     if settings.embed_provider == "google":
-        return 768  # text-embedding-004
+        return 3072  # gemini-embedding-001
     return EMBEDDING_DIMS.get(settings.ollama_embed_model, 1024)
 
 
