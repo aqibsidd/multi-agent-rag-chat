@@ -29,6 +29,17 @@ class Settings:
     groq_chat_model: str = os.environ.get(
         "GROQ_CHAT_MODEL", "llama-3.3-70b-versatile"
     )
+    # One-line model switch via OpenRouter (300+ models, one key).
+    # When set, it sits right after NVIDIA in the fallback chain, so
+    # `OPENROUTER_CHAT_MODEL=anthropic/claude-3.5-sonnet` swaps the
+    # fallback without code changes.
+    openrouter_api_key: str = os.environ.get("OPENROUTER_API_KEY", "")
+    openrouter_chat_model: str = os.environ.get(
+        "OPENROUTER_CHAT_MODEL", "google/gemini-2.5-flash"
+    )
+    openrouter_base_url: str = os.environ.get(
+        "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"
+    )
     qdrant_url: str = os.environ.get("QDRANT_URL", "http://localhost:6333")
     qdrant_api_key: str = os.environ.get("QDRANT_API_KEY", "")
     qdrant_collection: str = os.environ.get("QDRANT_COLLECTION", "documents")

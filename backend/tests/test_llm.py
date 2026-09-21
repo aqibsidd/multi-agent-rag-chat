@@ -16,6 +16,9 @@ def _settings_with_keys(**overrides):
         "google_chat_model": "gemini-2.5-flash",
         "groq_api_key": "q-test",
         "groq_chat_model": "llama-3.3-70b-versatile",
+        "openrouter_api_key": "o-test",
+        "openrouter_chat_model": "google/gemini-2.5-flash",
+        "openrouter_base_url": "https://openrouter.ai/api/v1",
         "qdrant_url": "http://localhost:6333",
         "qdrant_api_key": "",
         "qdrant_collection": "documents_pytest",
@@ -28,7 +31,10 @@ def _settings_with_keys(**overrides):
 
 
 def test_get_chat_model_fallback_order_nemotron_gemini_groq(monkeypatch):
-    monkeypatch.setattr(llm_module, "settings", _settings_with_keys())
+    # OpenRouter key empty -> classic 2-fallback chain.
+    monkeypatch.setattr(
+        llm_module, "settings", _settings_with_keys(openrouter_api_key="")
+    )
     model = get_chat_model()
     assert model.runnable.model_name == "nvidia/nemotron-3.5-lightning-30b-a3b"
     assert [f.model if hasattr(f, "model") else f.model_name for f in model.fallbacks] == [
@@ -37,9 +43,21 @@ def test_get_chat_model_fallback_order_nemotron_gemini_groq(monkeypatch):
     ]
 
 
+def test_get_chat_model_openrouter_sits_after_nvidia(monkeypatch):
+    monkeypatch.setattr(llm_module, "settings", _settings_with_keys())
+    model = get_chat_model()
+    assert [f.model if hasattr(f, "model") else f.model_name for f in model.fallbacks] == [
+        "google/gemini-2.5-flash",
+        "gemini-2.5-flash",
+        "llama-3.3-70b-versatile",
+    ]
+
+
 def test_get_chat_model_skips_providers_without_keys(monkeypatch):
     monkeypatch.setattr(
-        llm_module, "settings", _settings_with_keys(groq_api_key="")
+        llm_module,
+        "settings",
+        _settings_with_keys(groq_api_key="", openrouter_api_key=""),
     )
     model = get_chat_model()
     assert len(model.fallbacks) == 1
@@ -50,7 +68,9 @@ def test_get_chat_model_constructs_without_any_keys(monkeypatch):
     monkeypatch.setattr(
         llm_module,
         "settings",
-        _settings_with_keys(nvidia_api_key="", google_api_key="", groq_api_key=""),
+        _settings_with_keys(
+            nvidia_api_key="", google_api_key="", groq_api_key="", openrouter_api_key=""
+        ),
     )
     model = get_chat_model()  # must not raise; fails only at invoke time
     assert model.fallbacks == []
