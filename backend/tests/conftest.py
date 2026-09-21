@@ -36,3 +36,10 @@ def _isolated_qdrant_collection():
     yield
 
     _wipe_test_collections(client, name)
+
+    # Clear cached vectorstores so in-process collection recreation (e.g.
+    # after a dim change) doesn't leave stale embeddings/caches for the
+    # next test run in the same worker.
+    from app.vectorstore import clear_vectorstore_cache
+
+    clear_vectorstore_cache()

@@ -49,7 +49,7 @@ def _rewrite_query(llm, prior_messages: list, query: str) -> str:
             ]
         )
         return (response.content or "").strip() or query
-    except Exception:  # noqa: BLE001 — rewrite is best-effort only
+    except Exception:  # noqa: BLE001 — stream not supported by fake LLMs in tests  # noqa: BLE001 — rewrite is best-effort only
         return query
 
 
@@ -70,14 +70,25 @@ def rag_agent_node(state: GraphState, llm=None, vectorstore=None) -> dict:
         f"Conversation history:\n{history_text(state['messages'][:-1])}\n\n"
         f"Context:\n{_build_context(docs)}"
     )
-    response = llm.invoke(
-        [
-            {"role": "system", "content": system_prompt},
-            HumanMessage(content=query),
-        ]
-    )
+    try:
+        chunks = list(
+            llm.stream(
+                [
+                    {"role": "system", "content": system_prompt},
+                    HumanMessage(content=query),
+                ]
+            )
+        )
+        text = "".join(getattr(c, "content", "") for c in chunks) or chunks[-1].content if chunks else ""
+    except Exception:  # noqa: BLE001 — stream not supported by fake LLMs in tests
+        text = llm.invoke(
+            [
+                {"role": "system", "content": system_prompt},
+                HumanMessage(content=query),
+            ]
+        ).content
 
     return {
-        "messages": [AIMessage(content=response.content)],
+        "messages": [AIMessage(content=text)],
         "retrieved_docs": docs,
     }

@@ -48,13 +48,16 @@ def get_chat_model(temperature: float = 0.3):
 
 def get_embeddings():
     """Ollama locally, Google on Render/cloud. Same key as the chat
-    fallback — gemini-embedding-001 is 3072-dim, free tier."""
+    fallback — gemini-embedding-001 is 3072-dim but we truncate to 768
+    (Matryoshka, much faster, `ensure_collection` handles the dim)."""
     if settings.embed_provider == "google":
         from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
         return GoogleGenerativeAIEmbeddings(
             model=settings.google_embed_model,
             google_api_key=settings.google_api_key or "not-set",
+            task_type="retrieval_document",
+            output_dimensionality=768,
         )
     return OllamaEmbeddings(
         model=settings.ollama_embed_model,
