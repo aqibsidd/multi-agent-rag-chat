@@ -7,9 +7,10 @@ from app.config import settings
 
 
 def get_chat_model(temperature: float = 0.3):
-    """Nemotron -> Gemini Flash -> Groq Llama. All API, no local LLM, so the
-    backend deploys anywhere with just keys. Providers without a configured
-    key are skipped, so local/test envs still construct fine."""
+    """Nemotron -> OpenRouter (one-line model switch) -> Gemini -> Groq.
+    All API, no local LLM. Providers without a key are skipped, so
+    local/test envs still construct fine. Set OPENROUTER_CHAT_MODEL to
+    any OpenRouter slug to swap fallbacks without code."""
     primary = ChatOpenAI(
         model=settings.nvidia_chat_model,
         base_url=settings.nvidia_base_url,
@@ -17,6 +18,15 @@ def get_chat_model(temperature: float = 0.3):
         temperature=temperature,
     )
     fallbacks = []
+    if settings.openrouter_api_key:
+        fallbacks.append(
+            ChatOpenAI(
+                model=settings.openrouter_chat_model,
+                base_url=settings.openrouter_base_url,
+                api_key=settings.openrouter_api_key,
+                temperature=temperature,
+            )
+        )
     if settings.google_api_key:
         fallbacks.append(
             ChatGoogleGenerativeAI(

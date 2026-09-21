@@ -8,6 +8,8 @@ def test_settings_defaults():
     assert s.nvidia_base_url == "https://integrate.api.nvidia.com/v1"
     assert s.google_chat_model == "gemini-2.5-flash"
     assert s.groq_chat_model == "llama-3.3-70b-versatile"
+    assert s.openrouter_chat_model == "google/gemini-2.5-flash"
+    assert s.openrouter_base_url == "https://openrouter.ai/api/v1"
     assert s.ollama_embed_model == "mxbai-embed-large"
     assert s.embed_provider == "ollama"
     assert s.google_embed_model == "models/gemini-embedding-001"
