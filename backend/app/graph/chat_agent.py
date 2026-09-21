@@ -22,5 +22,11 @@ def chat_agent_node(state: GraphState, llm=None) -> dict:
         for m in visible
     ]
 
-    response = llm.invoke(history)
-    return {"messages": [AIMessage(content=response.content)]}
+    # Stream tokens so the SSE gateway can forward them as they arrive
+    # instead of buffering the whole answer behind one .invoke().
+    try:
+        chunks = list(llm.stream(history))
+        text = "".join(getattr(c, "content", "") for c in chunks) or chunks[-1].content if chunks else ""
+    except Exception:  # noqa: BLE001 — stream not supported by fake LLMs in tests
+        text = llm.invoke(history).content
+    return {"messages": [AIMessage(content=text)]}

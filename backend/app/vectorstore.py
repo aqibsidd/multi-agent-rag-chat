@@ -18,7 +18,7 @@ EMBEDDING_DIMS = {
 
 def get_embedding_dim() -> int:
     if settings.embed_provider == "google":
-        return 3072  # gemini-embedding-001
+        return 768  # gemini-embedding-001 truncated via output_dimensionality
     return EMBEDDING_DIMS.get(settings.ollama_embed_model, 1024)
 
 
@@ -26,6 +26,7 @@ def get_embedding_dim() -> int:
 EMBEDDING_DIM = 768
 
 _client: QdrantClient | None = None
+_vectorstore_cache: dict[str, QdrantVectorStore] = {}
 
 
 def get_client() -> QdrantClient:
@@ -72,10 +73,23 @@ def ensure_collection(collection: str | None = None) -> None:
 
 
 def get_vectorstore(collection: str | None = None) -> QdrantVectorStore:
+    """Cached per-collection. Each QdrantVectorStore construction does a
+    dummy `embed_documents` call to validate dims — without caching every
+    request paid that LLM round-trip (the live hang). Cache is keyed by
+    (collection, embed_provider/model) so a provider switch still recreates."""
     name = collection or settings.qdrant_collection
+    cache_key = f"{name}:{settings.embed_provider}:{settings.google_embed_model}:{settings.ollama_embed_model}"
+    if cache_key in _vectorstore_cache:
+        return _vectorstore_cache[cache_key]
     ensure_collection(name)
-    return QdrantVectorStore(
+    store = QdrantVectorStore(
         client=get_client(),
         collection_name=name,
         embedding=get_embeddings(),
     )
+    _vectorstore_cache[cache_key] = store
+    return store
+
+
+def clear_vectorstore_cache() -> None:
+    _vectorstore_cache.clear()
