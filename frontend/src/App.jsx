@@ -156,17 +156,29 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Multi-Agent RAG Chat</h1>
-        <p className="subtitle">Ollama + LangGraph + Qdrant — fully local</p>
+        <div className="header-top">
+          <div>
+            <h1>Multi-Agent RAG Chat</h1>
+            <p className="subtitle">
+              Nemotron · OpenRouter · Qdrant — agentic RAG with grounded answers
+            </p>
+          </div>
+          <span className="model-badge" title="Switch via OPENROUTER_CHAT_MODEL">
+            ● Live
+          </span>
+        </div>
       </header>
 
       <div className="upload-bar">
-        <input
-          type="file"
-          accept=".txt,.md,.pdf,.png,.jpg,.jpeg"
-          ref={fileInputRef}
-          onChange={handleFileUpload}
-        />
+        <label className="file-picker">
+          <input
+            type="file"
+            accept=".txt,.md,.pdf,.png,.jpg,.jpeg"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+          />
+          <span>{uploadStatus ? "✓" : "＋"} Choose file</span>
+        </label>
         <button onClick={newChat} disabled={isStreaming} title="Start a fresh session">
           New chat
         </button>
@@ -176,7 +188,17 @@ export default function App() {
       <div className="chat-window">
         {messages.length === 0 && (
           <div className="empty-state">
-            Upload a document, then ask a question about it below.
+            <div className="empty-icon">💬</div>
+            <p>Upload a document, then ask a question about it.</p>
+            <div className="suggestions">
+              {["Summarize the document", "What are the key points?", "Who is mentioned?"].map(
+                (s) => (
+                  <button key={s} className="suggestion" onClick={() => setInput(s)}>
+                    {s}
+                  </button>
+                )
+              )}
+            </div>
           </div>
         )}
         {messages.map((m, i) => (
@@ -200,7 +222,9 @@ export default function App() {
                     m.content
                   )
                 ) : isStreaming && i === messages.length - 1 ? (
-                  "…"
+                  <span className="typing">
+                    <span className="dot" /> <span className="dot" /> <span className="dot" />
+                  </span>
                 ) : (
                   ""
                 )}
